@@ -3667,10 +3667,10 @@
   "resolved" "https://registry.npmjs.org/functions-have-names/-/functions-have-names-1.2.3.tgz"
   "version" "1.2.3"
 
-"garlic-fetch@^21.0.6":
-  "integrity" "sha512-hDTWMjeeRPxj9+jWUsPg/GtU5m/zW2VP47O3Y4xAsrsX5dFeeB//EsiOSdmBkCjSy0l+NusUMSlj22Am4E7szw=="
-  "resolved" "https://registry.npmjs.org/garlic-fetch/-/garlic-fetch-21.0.6.tgz"
-  "version" "21.0.6"
+"garlic-fetch@^21.0.7":
+  "integrity" "sha512-viyCKy/apVvIRWszX8D3qPONeQuSvEmI5vbZEV50iQKx1Zh7VBl/rz1LoO8Tud3rn3+jOpE9D1JyDO5FZqZuYw=="
+  "resolved" "https://registry.npmjs.org/garlic-fetch/-/garlic-fetch-21.0.7.tgz"
+  "version" "21.0.7"
   dependencies:
     "detect-port" "^1.5.1"
     "got" "^12.5.3"
@@ -4340,10 +4340,10 @@
   "resolved" "https://registry.npmjs.org/imurmurhash/-/imurmurhash-0.1.4.tgz"
   "version" "0.1.4"
 
-"index-fetch@^21.0.1":
-  "integrity" "sha512-lgbWHYHJ4UuN+6SycPmzIbF+IR1B41kaCOgZvCPdxNAZAMIo0sBOio7NDBbjylegDlpqmfu1zU52lfNR1EwhhA=="
-  "resolved" "https://registry.npmjs.org/index-fetch/-/index-fetch-21.0.1.tgz"
-  "version" "21.0.1"
+"index-fetch@^21.0.2":
+  "integrity" "sha512-mJrXz9ByXV4E2yubUBhZe27YSJ1TFrpDXeml2XJeVtrlvIhHY0y/HNqksud3HHB2OWOqzrGXjBUcUK2i3NIbkQ=="
+  "resolved" "https://registry.npmjs.org/index-fetch/-/index-fetch-21.0.2.tgz"
+  "version" "21.0.2"
   dependencies:
     "detect-port" "^1.5.1"
     "got" "^12.5.3"
@@ -6349,10 +6349,10 @@
   dependencies:
     "mimic-fn" "^2.1.0"
 
-"onion-fetch@^21.0.1":
-  "integrity" "sha512-3pRv6qgZLtXDar0vbNwMgy1EacndJlPAVbsvcTt616vAyLpXPR1H7813OArKq6xjls1EfIIeVKmXmPcQ4ccpKQ=="
-  "resolved" "https://registry.npmjs.org/onion-fetch/-/onion-fetch-21.0.1.tgz"
-  "version" "21.0.1"
+"onion-fetch@^21.0.2":
+  "integrity" "sha512-J83pT0/3n2jvaUiPNia3WcYE9lB0w3HV0E2sSftrtgPt8RXMQL1CCjt2gR044dW5GxGHqK38+gRzO2OMbdQ7tw=="
+  "resolved" "https://registry.npmjs.org/onion-fetch/-/onion-fetch-21.0.2.tgz"
+  "version" "21.0.2"
   dependencies:
     "detect-port" "^1.5.1"
     "got" "^12.5.3"
