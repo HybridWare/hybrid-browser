@@ -27,7 +27,7 @@ if (rawFrame) nav.classList.toggle('hidden', true)
 window.addEventListener('load', () => {
   if (noNav) return
   console.log('toNavigate', toNavigate)
-  currentWindow.loadURL(toNavigate)
+  currentWindow.loadURL(toNavigate).catch(console.error)
   webview.emitResize()
 })
 
@@ -40,7 +40,7 @@ search.addEventListener('forward', () => {
 })
 
 search.addEventListener('home', () => {
-  navigateTo('hybrid://welcome')
+  navigateTo('hybrid://welcome').catch(console.error)
 })
 
 search.addEventListener('open', () => {
@@ -53,13 +53,13 @@ search.addEventListener('close', () => {
 
 search.addEventListener('delete', ({detail}) => {
   const {url} = detail
-  navigateTo(url)
+  navigateTo(url).catch(console.error)
 })
 
 search.addEventListener('navigate', ({ detail }) => {
   const { url } = detail
 
-  navigateTo(url)
+  navigateTo(url).catch(console.error)
 })
 
 search.addEventListener('unfocus', async () => {
