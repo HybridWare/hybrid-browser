@@ -1,0 +1,219 @@
+{
+  "name": "hybrid-browser",
+  "version": "3.0.0",
+  "description": "A minimal web browser for the distributed web",
+  "main": "app/main.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "debug": "env NODE_ENV=debug electron --trace-uncaught .",
+    "builder": "electron-builder build --publish never",
+    "builder-all": "electron-builder build -mwl",
+    "lint": "standard --fix",
+    "preversion": "npm run test",
+    "postinstall": "npm run postversion && npm run download-extensions && electron-builder install-app-deps",
+    "download-extensions": "node ./download-extensions.js",
+    "postversion": "node ./update-versions.js"
+  },
+  "standard": {
+    "ignore": [
+      "bundle.js",
+      "bundle-markdown.js",
+      "bundle-json.js",
+      "bundle-gemini.js",
+      "bundle-ssb.js",
+      "extension-hybrid-*/",
+      "version.js"
+    ]
+  },
+  "build": {
+    "npmRebuild": true,
+    "asar": true,
+    "asarUnpack": [
+      "app/**",
+      "node_modules/**",
+      "build/icon.png",
+      "build/icon-small.png",
+      "package.json"
+    ],
+    "productName": "Hybrid Browser",
+    "appId": "browser.hybridware.app",
+    "files": [
+      "build/*",
+      "app/**/*",
+      "app/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "html",
+        "name": "web page",
+        "role": "Viewer"
+      },
+      {
+        "ext": "md",
+        "name": "markdown",
+        "role": "Viewer"
+      },
+      {
+        "ext": "gemini",
+        "role": "Viewer"
+      }
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "protocols": [
+      {
+        "name": "hypercore-protocol",
+        "schemes": [
+          "hyper"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "webpages",
+        "schemes": [
+          "http",
+          "https"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "gemini",
+        "schemes": [
+          "gemini"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "gopher",
+        "schemes": [
+          "gopher"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "ipfs",
+        "schemes": [
+          "ipfs"
+        ],
+        "role": "Viewer"
+      },
+      {
+        "name": "bittorrent",
+        "schemes": [
+          "magnet",
+          "bt"
+        ],
+        "role": "Viewer"
+      }
+    ],
+    "dmg": {
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "mac": {
+      "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
+      "darkModeSupport": true,
+      "gatekeeperAssess": false,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
+      "executableArgs": [
+        "--enable-accelerated-video"
+      ],
+      "target": [
+        "deb",
+        "AppImage",
+        "apk",
+        "pacman"
+      ],
+      "category": "Network;FileTransfer:P2P"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HybridWare/hybrid-browser.git"
+  },
+  "keywords": [
+    "dat",
+    "hypercore",
+    "hyper",
+    "hyperdrive",
+    "ipfs",
+    "browser",
+    "dweb"
+  ],
+  "author": "HybridWare <contact@hybridware.app>",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/HybridWare/hybrid-browser/issues"
+  },
+  "homepage": "https://github.com/HybridWare/hybrid-browser#readme",
+  "devDependencies": {
+    "@netless/extension-flat": "^1.0.1",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
+    "standard": "^17.1.0"
+  },
+  "dependencies": {
+    "@derhuerst/gemini": "^2.0.0",
+    "@helia/mfs": "^3.0.1",
+    "@helia/unixfs": "^3.0.1",
+    "abort-controller": "^3.0.0",
+    "blockstore-fs": "^1.1.10",
+    "create-desktop-shortcuts": "^1.11.0",
+    "data-uri-to-buffer": "^6.0.2",
+    "datastore-fs": "^9.1.8",
+    "decompress": "^4.2.1",
+    "delay": "^6.0.0",
+    "detect-port": "^1.5.1",
+    "electron-extended-webextensions": "github:ducksandgoats/electron-extended-WebExtensions",
+    "fs-extra": "^11.2.0",
+    "gemini-to-html": "^2.1.0",
+    "get-urls": "^12.1.0",
+    "gopher-lib": "^0.2.0",
+    "helia": "^4.0.2",
+    "http-proxy-agent": "^7.0.2",
+    "hyper-sdk": "^4.5.0",
+    "mime": "^4.0.1",
+    "multiformats": "^13.1.0",
+    "node-fetch": "^3.3.2",
+    "range-parser": "^1.2.1",
+    "rc": "^1.2.8",
+    "sanitize-filename": "^1.6.3",
+    "scoped-fs": "^1.4.1",
+    "socks-proxy-agent": "^8.0.2",
+    "streamx": "^2.16.1",
+    "torrentz": "^14.0.8",
+    "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
+    "wrtc": "^0.4.7"
+  }
+}

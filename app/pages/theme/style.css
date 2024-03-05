@@ -1,0 +1,88 @@
+@charset "utf-8";
+@import url("hybrid://theme/vars.css");
+
+html,body,input,button {
+  background: var(--hy-theme-background);
+  color: var(--hy-theme-text);
+  font-family: var(--hy-theme-font-family);
+}
+
+body {
+  padding: 1em;
+  max-width: var(--hy-theme-max-width);
+  margin: 0 auto;
+}
+
+a {
+  color: var(--hy-theme-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--hy-theme-primary);
+}
+
+a:visited {
+	color: var(--hy-theme-primary);
+}
+
+img {
+    width: 80%;
+    display: block;
+    margin: 1em auto;
+}
+
+iframe {
+  display: block;
+  margin: 1em auto;
+}
+
+code {
+  background: var(--hy-theme-primary);
+  font-weight: bold;
+  padding: 0.25em;
+}
+
+br {
+  display: none;
+}
+
+li {
+  list-style-type: " ⟐ ";
+}
+
+hr {
+  border-color: var(--hy-theme-primary);
+}
+
+*:focus {
+  outline: 2px solid var(--hy-theme-secondary);
+}
+
+h1 {
+  text-align: center;
+}
+
+/* Reset style for anchors added to headers */
+h2 a, h3 a, h4 a {
+  color: var(--hy-theme-text);
+  text-decoration: none;
+}
+
+h1 a {
+  color: var(--hy-theme-primary);
+  text-decoration: none;
+}
+
+h1:hover::after, h2:hover::after, h3:hover::after, h4:hover::after {
+  text-decoration: none !important;
+}
+h2::before {
+  content: "## ";
+  color: var(--hy-theme-secondary)
+}
+h3::before {
+  content: "### ";
+  color: var(--hy-theme-secondary)
+}
+h4::before {
+  content: "#### ";
+  color: var(--hy-theme-secondary)
+}

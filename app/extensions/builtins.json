@@ -1,0 +1,16 @@
+{
+  "hybrid-history": {
+    "version": "1.1.1",
+    "url": "https://github.com/HybridWare/extension-hybrid-history/releases/download/v{version}/v{version}.zip"
+  },
+  "archiveweb.page": {
+    "version": "0.9.8",
+    "url": "https://github.com/webrecorder/archiveweb.page/releases/download/v{version}/ArchiveWeb.page-{version}-extension.zip"
+  },
+  "ublock": {
+    "version": "1.47.4",
+    "comment": "The chrome one has a weird subfolder so we're loading the raw firefox version instead",
+    "url": "https://github.com/gorhill/uBlock/releases/download/{version}/uBlock0_{version}.chromium.zip",
+    "stripPrefix": "uBlock0.chromium/"
+  }
+}
