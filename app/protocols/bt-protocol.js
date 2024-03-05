@@ -122,7 +122,7 @@ export default async function makeBTFetch (opts = {}) {
       // const session = new Request(url, opt)
       try {
         const mainURL = new URL(session.url)
-        const reqHeaders = session.headers
+        const reqHeaders = new Headers(session.headers)
         const searchParams = mainURL.searchParams
         const body = session.body
         const method = session.method

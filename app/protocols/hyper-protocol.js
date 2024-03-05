@@ -124,7 +124,7 @@ export default async function makeHyperFetch (opts = {}) {
       try {
       // const session = new Request(url, opt)
       const mainURL = new URL(session.url)
-      const reqHeaders = session.headers
+      const reqHeaders = new Headers(session.headers)
       const searchParams = mainURL.searchParams
       const body = session.body
       const method = session.method
