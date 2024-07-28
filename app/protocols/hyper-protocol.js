@@ -163,35 +163,6 @@ export default async function makeHyperFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } else if (reqHeaders.has('x-copy') || searchParams.has('x-copy')) {
-            if(isItBlock){
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
-            }
-            const useDrive = await waitForStuff({ num: useOpts.timeout, msg: 'drive' }, checkForDrive(main.useHost))
-            const useData = await stat(useDrive, main)
-            if(useData.directory){
-              const useIdenPath = JSON.parse(reqHeaders.get('x-copy') || searchParams.get('x-copy')) ? `/${useDrive.key.toString('hex')}` : '/'
-              const mainDrive = await checkForDrive(id)
-              let useNum = 0
-              for await (const test of useDrive.list(main.usePath)) {
-                useNum = useNum + test.value.blob.byteLength
-                const pathToFile = path.join(useIdenPath, test.key).replace(/\\/g, "/")
-                await mainDrive.put(pathToFile, await useDrive.get(test.key))
-              }
-              const pathToFolder = path.join(useIdenPath, main.usePath).replace(/\\/g, "/")
-              const useHeaders = {}
-              useHeaders['X-Link'] = 'hyper://_' + pathToFolder.replace(/\\/g, "/")
-              useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-              return new Response(null, { status: 200, headers: { ...mainHeaders, 'Content-Length': `${useNum}`, ...useHeaders } })
-            } else {
-              const pathToFile = JSON.parse(reqHeaders.get('x-copy') || searchParams.get('x-copy')) ? path.join(`/${useDrive.key.toString('hex')}`, useData.key).replace(/\\/g, "/") : useData.key
-              const mainDrive = await checkForDrive(id)
-              await mainDrive.put(pathToFile, await useDrive.get(useData.key))
-              const useHeaders = {}
-              useHeaders['X-Link'] = 'hyper://_' + pathToFile.replace(/\\/g, "/")
-              useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-              return new Response(null, { status: 200, headers: { ...mainHeaders, 'Content-Length': `${useData.value.blob.byteLength}`, ...useHeaders } })
-            }
           } else if (reqHeaders.has('x-load') || searchParams.has('x-load')) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})

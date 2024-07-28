@@ -22,10 +22,7 @@ document.getElementById('find').show()
 const DEFAULT_CONFIG_FILE_NAME = '.hybridrc'
 
 export function createActions ({
-  createWindow,
-  manageProtocol,
-  closeHandler,
-  webSession: session
+  createWindow
 }) {
   return {
     OpenDevTools: {
@@ -253,54 +250,55 @@ export function createActions ({
       }
     }
   }
-  
-  async function getFaviconDataURL (webContents, type) {
-    return webContents.executeJavaScript(`new Promise(async (resolve, reject) => {
-      try {
-      const {href} = document.querySelector("link[rel*='icon']")
-  
-      const image = new Image()
-        await new Promise(resolve => {
-           image.onload = resolve
-           image.src = href
-        })
-  
-      const canvas = document.createElement('canvas')
-        canvas.width = 256
-        canvas.height = 256
-  
-      const context = canvas.getContext('2d')
-        context.drawImage(image, 0, 0, 256, 256)
-  
-      ${
-        type === 'ico'
-        ? `
-          canvas.toBlob(blob => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result)
-            reader.readAsDataURL(new Blob([].concat([
-              [0, 0],      // ICO header
-              [1, 0],      // Is ICO
-              [1, 0],      // Number of images
-              [0],         // Width (0 seems to work)
-              [0],         // Height (0 seems to work)
-              [0],         // Color palette (none)
-              [0],         // Reserved space
-              [1, 0],      // Color planes
-              [32, 0],     // Bit depth
-            ].map(part => new Uint8Array(part).buffer), [
-              [blob.size], // Image byte size
-              [22],        // Image byte offset
-            ].map(part => new Uint32Array(part).buffer), [
-              blob,        // Image
-            ]), {type: 'image/vnd.microsoft.icon'}))
-          })`
-  
-        : "resolve(canvas.toDataURL('image/png'))"
-      }
-      } catch (e) {
-        reject(e)
-      }
-    })`)
-  }  
 }
+
+async function getFaviconDataURL (webContents, type) {
+  return webContents.executeJavaScript(`new Promise(async (resolve, reject) => {
+    try {
+    const {href} = document.querySelector("link[rel*='icon']")
+
+    const image = new Image()
+      await new Promise(resolve => {
+         image.onload = resolve
+         image.src = href
+      })
+
+    const canvas = document.createElement('canvas')
+      canvas.width = 256
+      canvas.height = 256
+
+    const context = canvas.getContext('2d')
+      context.drawImage(image, 0, 0, 256, 256)
+
+    ${
+      type === 'ico'
+      ? `
+        canvas.toBlob(blob => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.readAsDataURL(new Blob([].concat([
+            [0, 0],      // ICO header
+            [1, 0],      // Is ICO
+            [1, 0],      // Number of images
+            [0],         // Width (0 seems to work)
+            [0],         // Height (0 seems to work)
+            [0],         // Color palette (none)
+            [0],         // Reserved space
+            [1, 0],      // Color planes
+            [32, 0],     // Bit depth
+          ].map(part => new Uint8Array(part).buffer), [
+            [blob.size], // Image byte size
+            [22],        // Image byte offset
+          ].map(part => new Uint32Array(part).buffer), [
+            blob,        // Image
+          ]), {type: 'image/vnd.microsoft.icon'}))
+        })`
+
+      : "resolve(canvas.toDataURL('image/png'))"
+    }
+    } catch (e) {
+      reject(e)
+    }
+  })`)
+}
+//

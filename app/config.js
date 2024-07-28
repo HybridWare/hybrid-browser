@@ -58,7 +58,6 @@ export default RC('hybrid', {
   ipfs: {
     repo: DEFAULT_IPFS_DIR,
     refresh: false,
-    serve: false,
     status: true,
     block: true
   },

@@ -1,5 +1,4 @@
 import { Menu, app } from 'electron'
-import config from './config.js'
 
 const isMac = process.platform === 'darwin'
 

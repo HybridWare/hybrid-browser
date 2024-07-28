@@ -15,7 +15,7 @@ const { dir: extensionsDir, remote } = Config.extensions
 
 // Handle `app.asar` Electron functionality so that extensions can be referenced on the FS
 // Also note that MacOS uses `app-arm64.asar`, so we should target the first `.asar/`
-const __dirname = path.dirname(fileURLToPath(import.meta.url).replace(`.asar${path.sep}`, `.asar.unpacked${path.sep}`))
+const __dirname = fileURLToPath(new URL('./', import.meta.url)).replace(`.asar${path.sep}`, `.asar.unpacked${path.sep}`)
 const DEFAULT_EXTENSION_LOCATION = path.join(__dirname, 'builtins')
 const DEFAULT_EXTENSION_LIST_LOCATION = path.join(__dirname, 'builtins.json')
 

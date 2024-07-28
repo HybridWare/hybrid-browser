@@ -13,7 +13,8 @@ import { version } from './version.js'
 
 const IS_DEBUG = process.env.NODE_ENV === 'debug'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __dirname = fileURLToPath(new URL('./', import.meta.url))
+// const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WEB_PARTITION = 'persist:web-content'
 const LOGO_FILE = path.join(__dirname, '../build/icon-small.png')
@@ -24,6 +25,13 @@ const REGISTRATION_DELAY = 2 * 60 * 1000
 if (IS_DEBUG) {
   app.on('web-contents-created', (event, webContents) => {
     webContents.openDevTools()
+  })
+}
+
+if (!IS_DEBUG) {
+// We shouldn't freeze the process when there's an error. Just ignore it.
+  process.on('uncaughtException', function (error) {
+    console.error(error)
   })
 }
 
@@ -62,7 +70,7 @@ function init () {
   })
 
   app.on('second-instance', (event, argv, workingDirectory) => {
-    console.log('Got signal from second instance', argv)
+    console.log('Got signal from second instance', [...argv])
     const urls = urlsFromArgs(argv.slice(1), workingDirectory)
     urls.map((url) => windowManager.open({ url }))
   })

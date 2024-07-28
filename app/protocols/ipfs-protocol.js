@@ -8,7 +8,6 @@ export default async function makeIPFSFetch (opts = {}) {
     // const fse = await import('fs-extra')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
-    const serve = finalOpts.serve
     const block = finalOpts.block
     const hostType = '.'
     const repo = finalOpts.repo
@@ -67,7 +66,7 @@ export default async function makeIPFSFetch (opts = {}) {
       const result = []
       for await (const item of iterable) {
         item.cid = item.cid.toV1().toString()
-        item.link = item.type === 'file' ? 'ipfs://' + path.join(item.cid, item.name).replace(/\\/g, "/") : 'ipfs://' + path.join(item.cid, '/').replace(/\\/g, "/")
+        item.link = 'ipfs://' + item.path
         result.push(item)
       }
       return result
@@ -134,7 +133,7 @@ export default async function makeIPFSFetch (opts = {}) {
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
                 const mainCid = CID.parse(useHost)
-                if(serve && await app.pins.isPinned(mainCid, {})){
+                if(await app.pins.isPinned(mainCid, {})){
                   await app.pins.rm(mainCid, {})
                 }
                 const useCid = await fileSystem.rm(mainCid, usePath, { ...useOpt, cidVersion: 1, recursive: true })
@@ -155,33 +154,6 @@ export default async function makeIPFSFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } else if (reqHeaders.has('x-copy') || searchParams.has('x-copy')) {
-            if(isItBlock){
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
-            }
-            const checkID = CID.parse(useHost)
-            const checkPath = usePath === '/' ? undefined : usePath
-            const checkStat = await fileSystem.stat(checkID, {path: checkPath})
-            if(checkStat.type === 'directory'){
-              let useCID = await fileSystem.addDirectory()
-              for await (const test of fileSystem.ls(checkID, {path: checkPath})){
-                useCID = await fileSystem.cp(test.cid, useCID, test.name)
-              }
-              const useLink = `ipfs://${path.join(useCID.toV1().toString(), '/').replace(/\\/g, "/")}`
-              const useHeaders = { 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"` }
-              if (type) {
-                useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
-              }
-              return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
-            } else {
-              const useCID = await fileSystem.addFile({path: usePath, content: Readable.from(fileSystem.cat(checkID, {path: usePath}))}, {wrapWithDirectory: true})
-              const useLink = `ipfs://${path.join(useCID.toV1().toString(), usePath).replace(/\\/g, "/")}`
-              const useHeaders = { 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"` }
-              if (type) {
-                useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
-              }
-              return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
-            }
           } else if (reqHeaders.has('x-pin') || searchParams.has('x-pin')) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
@@ -193,7 +165,7 @@ export default async function makeIPFSFetch (opts = {}) {
               useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
             }
             return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
-          }  else {
+          } else {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
             }
@@ -222,13 +194,10 @@ export default async function makeIPFSFetch (opts = {}) {
           const mainCid = mainData.cid.toV1().toString()
 
           if(mainData.type === 'directory'){
-            const plain = await dirIter(fileSystem.ls(mainData.cid, useOpts))
+            const plain = await dirIter(fileSystem.ls(useCID, useOpts))
             const useLink = `ipfs://${path.join(useHost, usePath).replace(/\\/g, "/")}`
-            return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${plain.map((data) => {return `<p><a href="${data.link}">${data.name}</a></p>`})}</div></body></html>` : JSON.stringify(plain), {status: 200, headers: {...mainHeaders, 'X-Canon': mainCid, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${mainData.size}`}})
+            return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${plain.map((data) => {return `<p><a href="${data.link}">${data.name}</a> - ${data.type} - ${data.cid}</p>`})}</div></body></html>` : JSON.stringify(plain), {status: 200, headers: {...mainHeaders, 'X-Canon': mainCid, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${mainData.size}`}})
           } else {
-            if(serve && !await app.pins.isPinned(mainData.cid, {})){
-              await app.pins.add(mainData.cid, {})
-            }
             const useLink = `ipfs://${path.join(useHost, usePath).replace(/\\/g, "/")}`
             const isRanged = reqHeaders.has('Range') || reqHeaders.has('range')
             if (isRanged) {
@@ -249,7 +218,7 @@ export default async function makeIPFSFetch (opts = {}) {
               if(type){
                 useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
               }
-              return new Response(fileSystem.cat(mainData.cid, useOpts), {status: 200, headers: {...mainHeaders, ...useHeaders}})
+              return new Response(fileSystem.cat(useCID, useOpts), {status: 200, headers: {...mainHeaders, ...useHeaders}})
             }
           }
       } else if(method === 'POST'){
@@ -271,9 +240,6 @@ export default async function makeIPFSFetch (opts = {}) {
           try {
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
           const mainCid = CID.parse(useHost)
-          if(serve && await app.pins.isPinned(mainCid, {})){
-            await app.pins.rm(mainCid, {})
-          }
           const useCid = await fileSystem.rm(mainCid, usePath.slice(1), { ...useOpt, cidVersion: 1, recursive: true })
           // await app.files.rm(query, { ...useOpt, cidVersion: 1, recursive: true })
           const usedLink = `ipfs://${useHost}${usePath}`

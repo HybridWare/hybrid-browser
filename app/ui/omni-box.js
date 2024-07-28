@@ -2,7 +2,6 @@
 
 const {CID} = require('multiformats/cid')
 
-const IPNS_PREFIX = '/ipns/'
 const IPFS_PREFIX = '/ipfs/'
 
 class OmniBox extends HTMLElement {
@@ -116,6 +115,16 @@ class OmniBox extends HTMLElement {
     })
     this.closeButton.addEventListener('click', () => {
       this.dispatchEvent(new CustomEvent('close'))
+    })
+
+    // middle mouse click paste&go
+    this.input.addEventListener('paste', (e) => {
+      const url = e.clipboardData.getData('text')
+
+      if (isURL(url)) {
+        e.preventDefault()
+        this.dispatchEvent(new CustomEvent('navigate', { detail: { url } }))
+      }
     })
   }
 
@@ -241,10 +250,7 @@ class OmniBox extends HTMLElement {
   attributeChangedCallback (name, oldValue, newValue) {
     if (name === 'src') {
       this.input.value = newValue
-      // const noFocus = window.searchParams.get('noFocus') === 'true'
-      const useLocation = window.location.href
-      const noFocus = new URLSearchParams(useLocation.slice(useLocation.indexOf('?'))).get('noFocus') === 'true'
-      // testing the changes made above this line
+      const noFocus = window.searchParams.get('noFocus') === 'true'
       if (noFocus) {
         return
       }
