@@ -30,7 +30,7 @@ export const dependencies = {
   "scoped-fs": "^1.4.1",
   "socks-proxy-agent": "^8.0.2",
   "streamx": "^2.16.1",
-  "torrentz": "^14.0.9",
+  "torrentz": "^15.0.0",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
   "wrtc": "^0.4.7"
 }

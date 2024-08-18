@@ -31,6 +31,7 @@ export default async function makeIPFSFetch (opts = {}) {
     }
     
     const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo)});} })()
+    // console.log(Object.keys(app), app)
     const fileSystem = await (async () => {const {unixfs} = await import('@helia/unixfs');return unixfs(app);})()
     if(!await pathExists(path.join(repo, 'block.txt'))){
       await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify([]))

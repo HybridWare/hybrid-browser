@@ -167,37 +167,32 @@ export default async function makeBTFetch (opts = {}) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
             }
-            const torrentData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
-            if (torrentData) {
-              const useData = torrentData.data
-              if(useData){
-                if(useData.createReadStream){
-                  const useHeaders = {'X-Directory': torrentData.folder, 'X-InfoHash': torrentData.infoHash}
-                  useHeaders['Content-Type'] = getMimeType(useData.path)
-                  useHeaders['Content-Length'] = `${useData.length}`
-                  useHeaders['Accept-Ranges'] = 'bytes'
-                  useHeaders['X-Downloaded'] = `${useData.downloaded}`
-                  useHeaders['X-Link'] = `bt://${mid.mainHost}${mid.mainPath}`
-                  useHeaders['Link'] = `<bt://${useHeaders['X-Link']}>; rel="canonical"`
-      
-                  return new Response(null, {status: 200, headers: {...mainHeaders, ...useHeaders}})
-                } else if (useData.forEach) {
-                  const useHeaders = { 'X-InfoHash': torrentData.infoHash, 'X-Directory': torrentData.folder, 'Content-Length': 0, 'X-Downloaded': 0, 'X-Link': `bt://${mid.mainHost}${mid.mainPath}` }
-                  useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-                  useData.forEach((data) => {
-                    useHeaders['Content-Length'] = useHeaders['Content-Length'] + data.length
-                    useHeaders['X-Downloaded'] = useHeaders['X-Downloaded'] + data.downloaded
-                  })
-                  
-                  return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
-                } else {
-                  return new Response(null, { status: 400, headers: { ...mainHeaders, 'X-InfoHash': torrentData.infoHash, 'X-Error': 'did not find any data' }})
-                }
+            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
+            if(useData){
+              if(useData.createReadStream){
+                const useHeaders = {}
+                useHeaders['Content-Type'] = getMimeType(useData.path)
+                useHeaders['Content-Length'] = `${useData.length}`
+                useHeaders['Accept-Ranges'] = 'bytes'
+                useHeaders['X-Downloaded'] = `${useData.downloaded}`
+                useHeaders['X-Link'] = `bt://${mid.mainHost}${mid.mainPath}`
+                useHeaders['Link'] = `<bt://${useHeaders['X-Link']}>; rel="canonical"`
+    
+                return new Response(null, {status: 200, headers: {...mainHeaders, ...useHeaders}})
+              } else if (useData.forEach) {
+                const useHeaders = { 'Content-Length': 0, 'X-Downloaded': 0, 'X-Link': `bt://${mid.mainHost}${mid.mainPath}` }
+                useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
+                useData.forEach((data) => {
+                  useHeaders['Content-Length'] = useHeaders['Content-Length'] + data.length
+                  useHeaders['X-Downloaded'] = useHeaders['X-Downloaded'] + data.downloaded
+                })
+                
+                return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
               } else {
-                return new Response(null, { status: 400, headers: { ...mainHeaders, 'X-Error': 'did not find any data', 'X-Done': String(torrentData.done), 'X-Progress': String(torrentData.progress), 'X-Remain': torrentData.remain }})
+                return new Response(null, { status: 400, headers: { ...mainHeaders, 'X-Error': 'did not find any data' }})
               }
             } else {
-              return new Response(null, {status: 400, headers: {...mainHeaders, 'X-Error': 'did not find any data'}})
+              return new Response(null, { status: 400, headers: { ...mainHeaders, 'X-Error': 'did not find any data' }})
             }
           }
         } else if(method === 'GET'){
@@ -209,44 +204,39 @@ export default async function makeBTFetch (opts = {}) {
         
             const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
             const useOpts = { ...useOpt, timeout: reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : undefined : btTimeout }
-            const torrentData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
-            if(torrentData){
-              const useData = torrentData.data
-              if(useData){
-                if(useData.createReadStream){
-                  const mainRange = reqHeaders.has('Range') || reqHeaders.has('range')
-                  if (mainRange) {
-                    const ranges = parseRange(useData.length, reqHeaders.get('Range') || reqHeaders.get('range'))
-                    if (ranges && ranges.length && ranges.type === 'bytes') {
-                      const [{ start, end }] = ranges
-                      const length = (end - start + 1)
-        
-                      return new Response(useData.createReadStream({ start, end }), {status: 206, headers: {...mainHeaders, 'X-Directory': torrentData.folder,'X-Link': `bt://${mid.mainHost}${mid.mainPath}`, 'Link': `<bt://${mid.mainHost}${mid.mainPath}>; rel="canonical"`, 'Content-Length': `${length}`, 'Content-Range': `bytes ${start}-${end}/${useData.length}`, 'Content-Type': getMimeType(useData.path)}})
-                    } else {
-                      return new Response(mainReq ? '<html><head><title>range</title></head><body><div><p>malformed or unsatisfiable range</p></div></body></html>' : JSON.stringify('malformed or unsatisfiable range'), {status: 416, headers: {...mainHeaders, 'Content-Type': mainRes, 'Content-Length': String(useData.length)}})
-                    }
+            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
+            if(useData){
+              if(useData.createReadStream){
+                const mainRange = reqHeaders.has('Range') || reqHeaders.has('range')
+                if (mainRange) {
+                  const ranges = parseRange(useData.length, reqHeaders.get('Range') || reqHeaders.get('range'))
+                  if (ranges && ranges.length && ranges.type === 'bytes') {
+                    const [{ start, end }] = ranges
+                    const length = (end - start + 1)
+      
+                    return new Response(useData.createReadStream({ start, end }), {status: 206, headers: {...mainHeaders,'X-Link': `bt://${mid.mainHost}${mid.mainPath}`, 'Link': `<bt://${mid.mainHost}${mid.mainPath}>; rel="canonical"`, 'Content-Length': `${length}`, 'Content-Range': `bytes ${start}-${end}/${useData.length}`, 'Content-Type': getMimeType(useData.path)}})
                   } else {
-                    return new Response(useData.createReadStream(), {status: 200, headers: {...mainHeaders, 'X-Directory': torrentData.folder,'Content-Type': getMimeType(useData.path), 'X-Link': `bt://${mid.mainHost}${mid.mainPath}`, 'Link': `<bt://${mid.mainHost}${mid.mainPath}>; rel="canonical"`, 'Content-Length': String(useData.length)}})
+                    return new Response(mainReq ? '<html><head><title>range</title></head><body><div><p>malformed or unsatisfiable range</p></div></body></html>' : JSON.stringify('malformed or unsatisfiable range'), {status: 416, headers: {...mainHeaders, 'Content-Type': mainRes, 'Content-Length': String(useData.length)}})
                   }
-                } else if (useData.forEach) {
-                  const useHeaders = { 'X-Directory': torrentData.folder, 'Content-Length': 0, 'Accept-Ranges': 'bytes', 'X-Downloaded': 0, 'X-Link': `bt://${mid.mainHost}${mid.mainPath}` }
-                  useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-                  useData.forEach((data) => {
-                    useHeaders['Content-Length'] = useHeaders['Content-Length'] + data.length
-                    useHeaders['X-Downloaded'] = useHeaders['X-Downloaded'] + data.downloaded
-                  })
-                  useHeaders['Content-Type'] = mainRes
-                  useHeaders['Content-Length'] = String(useHeaders['Content-Length'])
-                  useHeaders['X-Downloaded'] = String(useHeaders['X-Downloaded'])
-                  return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><h1>Directory</h1><p><a href='../'>..</a></p>${useData.map(file => { return `<p><a href='${file.urlPath}'>${file.name}</a></p>` })}</div></body></html>` : JSON.stringify(useData.map(file => { return file.urlPath })), {status: 200, headers: {...mainHeaders, ...useHeaders}})
                 } else {
-                  return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>could not find the data</p></div></body></html>` : JSON.stringify('could not find the data'), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes } })
+                  return new Response(useData.createReadStream(), {status: 200, headers: {...mainHeaders,'Content-Type': getMimeType(useData.path), 'X-Link': `bt://${mid.mainHost}${mid.mainPath}`, 'Link': `<bt://${mid.mainHost}${mid.mainPath}>; rel="canonical"`, 'Content-Length': String(useData.length)}})
                 }
+              } else if (useData.forEach) {
+                const useHeaders = { 'Content-Length': 0, 'Accept-Ranges': 'bytes', 'X-Downloaded': 0, 'X-Link': `bt://${mid.mainHost}${mid.mainPath}` }
+                useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
+                useData.forEach((data) => {
+                  useHeaders['Content-Length'] = useHeaders['Content-Length'] + data.length
+                  useHeaders['X-Downloaded'] = useHeaders['X-Downloaded'] + data.downloaded
+                })
+                useHeaders['Content-Type'] = mainRes
+                useHeaders['Content-Length'] = String(useHeaders['Content-Length'])
+                useHeaders['X-Downloaded'] = String(useHeaders['X-Downloaded'])
+                return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><h1>Directory</h1><p><a href='../'>..</a></p>${useData.length ? useData.map(file => { return `<p><a href='${file.urlPath}'>${file.name}</a></p>` }) : `<p>directory is empy, it is either still downloading, or this directory is supposed to be empty</p>`}</div></body></html>` : JSON.stringify(useData.map(file => { return file.urlPath })), {status: 200, headers: {...mainHeaders, ...useHeaders}})
               } else {
-                return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>Done: ${torrentData.done}</p><p>Progress: ${torrentData.progress}</p><p>Remain: ${torrentData.remain}</p><p>Error: could not find the data</p></div></body></html>` : JSON.stringify({...torrentData, error: 'could not find the data'}), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes, 'X-Error': 'could not find the data', 'X-Done': String(torrentData.done), 'X-Progress': String(torrentData.progress), 'X-Remain': torrentData.remain } })
+                return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>could not find the data</p></div></body></html>` : JSON.stringify('could not find the data'), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes } })
               }
             } else {
-              return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>could not find the data</p></div></body></html>` : JSON.stringify('could not find the data'), {status: 400, headers: {...mainHeaders, 'Content-Type': mainRes}})
+              return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>Error: could not find the data</p></div></body></html>` : JSON.stringify({error: 'could not find the data'}), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes, 'X-Error': 'could not find the data' } })
             }
         } else if(method === 'POST'){
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
