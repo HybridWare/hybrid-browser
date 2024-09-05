@@ -30,7 +30,7 @@ export default async function makeIPFSFetch (opts = {}) {
       }
     }
     
-    const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo), libp2p: {services: {dht: true, pubsub: true, identify: true}}});} })()
+    const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});} })()
     // console.log(Object.keys(app), app)
     const fileSystem = await (async () => {const {unixfs} = await import('@helia/unixfs');return unixfs(app);})()
     if(!await pathExists(path.join(repo, 'block.txt'))){
