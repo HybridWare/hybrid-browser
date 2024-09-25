@@ -1,3 +1,6 @@
+import {createServer} from 'http'
+import {WebSocketServer} from 'ws'
+
 export default class makeLocalFetch {
     constructor(bt, ipfs, hyper){
         this.bt = bt
@@ -11,8 +14,7 @@ export default class makeLocalFetch {
         // app.get('*', (req, res) => {
         //     return res.statusCode(400).json('unsuccessful')
         // })
-        this.http = require('http').createServer()
-        const {WebSocketServer} = require('ws')
+        this.http = createServer()
         this.ws = new WebSocketServer({server: this.http, path: '/', clientTracking: true})
 
         this.hyperConnection = (soc, data) => {
@@ -345,20 +347,31 @@ export default class makeLocalFetch {
         this.ws.on('close', this.ws.onClose)
         this.ws.on('error', this.ws.onError)
         this.ws.on('listening', this.ws.onListening)
-
+    }
+    start(port){
         this.http.on('close', this.http.onClose)
         this.http.on('listening', this.http.onListening)
         this.http.on('error', this.http.onError)
         this.http.on('request', this.http.onRequest)
-    }
-    start(port){
         if(!this.http.listening){
             this.http.listen(port)
         }
     }
     stop(){
+        this.http.off('close', this.http.onClose)
+        this.http.off('listening', this.http.onListening)
+        this.http.off('error', this.http.onError)
+        this.http.off('request', this.http.onRequest)
         if(this.http.listening){
-            this.http.close(console.error)
+            this.http.close()
         }
+    }
+    async close(data){
+        if(data){
+            await this.bt.close()
+            await this.ipfs.close()
+            await this.hyper.close()
+        }
+        this.stop()
     }
 }

@@ -1,4 +1,5 @@
 import { app, protocol as globalProtocol } from 'electron'
+import Relay from '../relay.js'
 import fs from 'fs-extra'
 import Config from '../config.js'
 
@@ -12,7 +13,8 @@ const {
   hhttp,
   tor,
   iip,
-  lok
+  lok,
+  extra
 } = Config
 
 const P2P_PRIVILEGES = {
@@ -145,9 +147,10 @@ export async function setupProtocols (session) {
   console.log('registered hybrid protocol')
 
   // bt
+  const torrentz = bt.status ? await (async () => {const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(bt);})() : null
   if(bt.status){
     const {default: createBTHandler} = await import('./bt-protocol.js')
-    const { handler: btHandler, close: closeBT } = await createBTHandler(bt, session)
+    const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, torrentz}, session)
     onCloseHandlers.push(closeBT)
     sessionProtocol.handle('bt', btHandler)
     globalProtocol.handle('bt', btHandler)
@@ -162,9 +165,10 @@ export async function setupProtocols (session) {
   // bt
 
   // ipfs
+  const helia = ipfs.status ? await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});})() : null
   if(ipfs.status){
     const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
-    const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler(ipfs, session)
+    const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
     onCloseHandlers.push(closeIPFS)
     sessionProtocol.handle('ipfs', ipfsHandler)
     globalProtocol.handle('ipfs', ipfsHandler)
@@ -174,9 +178,10 @@ export async function setupProtocols (session) {
   // ipfs
 
   // hyper
+  const sdk = hyper.status ? await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})() : null
   if(hyper.status){
     const {default: createHyperHandler} = await import('./hyper-protocol.js')
-    const { handler: hyperHandler, close: closeHyper } = await createHyperHandler(hyper, session)
+    const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, sdk}, session)
     onCloseHandlers.push(closeHyper)
     sessionProtocol.handle('hyper', hyperHandler)
     globalProtocol.handle('hyper', hyperHandler)
@@ -271,4 +276,10 @@ export async function setupProtocols (session) {
     console.log('registered lokinet protocol')
   }
   // loki
+
+  if(extra.relay && bt.status && ipfs.status && hyper.status){
+    const relay = new Relay(torrentz, helia, sdk)
+    relay.start(extra.port)
+    onCloseHandlers.push(async () => {return await relay.close(false)})
+  }
 }
