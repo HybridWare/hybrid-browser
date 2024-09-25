@@ -215,8 +215,9 @@
     "scoped-fs": "^1.4.1",
     "socks-proxy-agent": "^8.0.2",
     "streamx": "^2.16.1",
-    "torrentz": "^15.0.2",
+    "torrentz": "^15.0.3",
     "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
-    "wrtc": "^0.4.7"
+    "wrtc": "^0.4.7",
+    "ws": "^8.18.0"
   }
 }
