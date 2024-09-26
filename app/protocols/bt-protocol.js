@@ -32,7 +32,7 @@ export default async function makeBTFetch (opts = {}) {
       }
     }
   
-    const app = await (async () => {if(finalOpts.torrentz){resolve(finalOpts.torrentz)}else{const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(finalOpts);}})()
+    const app = await (async () => {if(finalOpts.torrentz){return finalOpts.torrentz}else{const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(finalOpts);}})()
     if(!await pathExists(path.join(dir, 'block.txt'))){
       await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify([]))
     }

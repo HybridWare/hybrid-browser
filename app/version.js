@@ -2,9 +2,12 @@
 export const name = 'hybrid-browser'
 export const version = '3.0.0'
 export const dependencies = {
+  "@chainsafe/libp2p-gossipsub": "^13.2.0",
   "@derhuerst/gemini": "^2.0.0",
   "@helia/mfs": "^3.0.1",
   "@helia/unixfs": "^3.0.1",
+  "@libp2p/identify": "^2.1.5",
+  "@libp2p/kad-dht": "^12.1.5",
   "abort-controller": "^3.0.0",
   "blockstore-fs": "^1.1.10",
   "create-desktop-shortcuts": "^1.11.0",
@@ -30,7 +33,8 @@ export const dependencies = {
   "scoped-fs": "^1.4.1",
   "socks-proxy-agent": "^8.0.2",
   "streamx": "^2.16.1",
-  "torrentz": "^15.0.0",
+  "torrentz": "^15.0.4",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
-  "wrtc": "^0.4.7"
+  "wrtc": "^0.4.7",
+  "ws": "^8.18.0"
 }
