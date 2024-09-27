@@ -120,5 +120,5 @@ hhttp: {
 ```
 ---
 
-This project was forked from [Agregore Browser](https://github.com/AgregoreWeb/agregore-browser).
-Special thanks and shout out to [RangerMauve](https://github.com/RangerMauve), they are the creator and developer of Agregore.
+This project was forked from [Hybrid Browser](https://github.com/HybridWeb/hybrid-browser).
+Special thanks and shout out to [RangerMauve](https://github.com/RangerMauve), they are the creator and developer of Hybrid.

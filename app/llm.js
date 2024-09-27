@@ -62,7 +62,7 @@ async function listModels () {
 async function confirmPull () {
   const { response, checkboxChecked } = await dialog.showMessageBox({
     title: 'Download AI Model?',
-    message: 'Agregore wants to download a large language model to allow websites to use AI features. This can take a few minutes and can take several gigabytes of internet. Do you want to allow this?',
+    message: 'Hybrid wants to download a large language model to allow websites to use AI features. This can take a few minutes and can take several gigabytes of internet. Do you want to allow this?',
     buttons: ['Yes', 'No'],
     defaultId: 0,
     cancelId: 1,
@@ -80,7 +80,7 @@ async function confirmPull () {
 async function notifyPullDone () {
   await dialog.showMessageBox({
     title: 'AI Model Downloaded',
-    message: `Agregore has finished downloading the large lanfguage model. You can clear it by running 'ollama rm ${model}'`
+    message: `Hybrid has finished downloading the large lanfguage model. You can clear it by running 'ollama rm ${model}'`
   })
 }
 

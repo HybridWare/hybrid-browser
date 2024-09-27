@@ -116,7 +116,7 @@ release/
 app/extensions/builtins/
 
 # Ignore RC file used for testing the config
-.agregorerc
+.hybridrc
 
 # Ignore nano temporary files
 *.swp

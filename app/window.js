@@ -25,7 +25,7 @@ const PERSIST_FILE = path.join(app.getPath('userData'), 'lastOpened.json')
 const DEFAULT_SAVE_INTERVAL = 30 * 1000
 
 // See if we have any stylesheets with rules
-// If not manually inject styles to be like Agregore
+// If not manually inject styles to be like Hybrid
 const HAS_SHEET = `
 [...document.styleSheets].filter((sheet) => {
 try {sheet.cssRules; return true} catch {return false}
@@ -481,8 +481,8 @@ export class Window extends EventEmitter {
 
 async function getDefaultStylesheet (webContents) {
   const [r1, r2] = await Promise.all([
-    webContents.session.fetch('agregore://theme/vars.css'),
-    webContents.session.fetch('agregore://theme/style.css')
+    webContents.session.fetch('hybrid://theme/vars.css'),
+    webContents.session.fetch('hybrid://theme/style.css')
   ])
 
   const [vars, style] = await Promise.all([

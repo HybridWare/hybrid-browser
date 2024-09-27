@@ -1,10 +1,10 @@
 # Configuring keyboard shortcuts
 
-Agregore uses the [rc](https://www.npmjs.com/package/rc#standards) module for loading configuration.
+Hybrid uses the [rc](https://www.npmjs.com/package/rc#standards) module for loading configuration.
 
 There's a bunch of functionality in there, but the short of it is that you can use the following as a starting point for your configuration.
 
-Save this as a file called `.agregorerc` in your "home" or "user" folder. 
+Save this as a file called `.hybridrc` in your "home" or "user" folder. 
 
 You can open this file by navigating to `Help > Edit Configuration File`.
 

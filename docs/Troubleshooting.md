@@ -5,7 +5,7 @@
 On some Linux distros you can get the following error when running `start`:
 
 ```
-[2720:0425/142001.775056:FATAL:setuid_sandbox_host.cc(157)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /path/to/agregore/node_modules/electron/dist/chrome-sandbox is owned by root and has mode 4755.
+[2720:0425/142001.775056:FATAL:setuid_sandbox_host.cc(157)] The SUID sandbox helper binary was found, but is not configured correctly. Rather than run without sandboxing I'm aborting now. You need to make sure that /path/to/hybrid/node_modules/electron/dist/chrome-sandbox is owned by root and has mode 4755.
 ```
 
 The simplest solution is to change the permissions on the `chrome-sandbox` binary, as stated in the error:

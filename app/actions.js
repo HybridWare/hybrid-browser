@@ -204,7 +204,7 @@ export function createActions ({
         properties: ['openDirectory']
       })).filePaths[0]
 
-      // If testing from source find and use installed Agregore location
+      // If testing from source find and use installed Hybrid location
       const filePath = appPath || process.argv[0]
 
       const title = webContents.getTitle()
@@ -223,8 +223,8 @@ export function createActions ({
 
       const createShortcut = icon => {
         if (icon) shortcut.icon = icon
-        // TODO: Kyran: Use Agregore icon if no icon provided.
-        // TODO: Kyran: OSX doesn't have arguments option. See https://github.com/RangerMauve/agregore-browser/pull/53#issuecomment-705654060 for solution.
+        // TODO: Kyran: Use Hybrid icon if no icon provided.
+        // TODO: Kyran: OSX doesn't have arguments option. See https://github.com/RangerMauve/hybrid-browser/pull/53#issuecomment-705654060 for solution.
         createDesktopShortcut({
           windows: shortcut,
           linux: shortcut
