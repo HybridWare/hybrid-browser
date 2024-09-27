@@ -1,5 +1,6 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
+import Relay from '../relay.js'
 
 const P2P_PRIVILEGES = {
   standard: true,
