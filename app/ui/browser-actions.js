@@ -2,9 +2,8 @@
 
 class BrowserActions extends HTMLElement {
   async connectedCallback () {
-    // if(!this.current){
-    //   this.current = window.getCurrentWindow()
-    // }
+    // this.current = window.getCurrentWindow()
+    // this.renderLatest()
     this.current = this.current ? this.current : window.getCurrentWindow()
     await this.renderLatest()
   }

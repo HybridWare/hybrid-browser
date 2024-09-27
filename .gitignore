@@ -112,13 +112,8 @@ dist
 # Ignore releases folder
 release/
 
-# Ignore debug extensions
-app/extensions/web-palette/
-app/extensions/darkreader/
-
-# Ignore extensions downloaded from the chrome store
-app/extensions/ublock/
-app/extensions/archiveweb.page/
+# Ignore zip files for downloaded extensions
+app/extensions/builtins/
 
 # Ignore RC file used for testing the config
 .agregorerc
@@ -135,3 +130,9 @@ app/extensions/archiveweb.page/
 
 # We use yarn lockfiles instead of package-lock
 package-lock.json
+
+# This gets generated post install
+app/version.js
+
+# This gets generated when I open in a Container
+.devcontainer

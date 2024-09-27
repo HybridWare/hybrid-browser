@@ -12,6 +12,15 @@ const DEFAULT_BT_DIR = path.join(USER_DATA, 'bt')
 const DEFAULT_PAGE = 'hybrid://welcome'
 
 export default RC('hybrid', {
+  llm: {
+    enabled: true,
+
+    baseURL: 'http://127.0.0.1:11434/v1/',
+    // Uncomment this to use OpenAI instead
+    // baseURL: 'https://api.openai.com/v1/'
+    apiKey: 'ollama',
+    model: 'phi3:3.8b-mini-4k-instruct-q4_0'
+  },
   accelerators: {
     OpenDevTools: 'CommandOrControl+Shift+I',
     NewWindow: 'CommandOrControl+N',
@@ -46,7 +55,6 @@ export default RC('hybrid', {
   defaultPage: DEFAULT_PAGE,
   autoHideMenuBar: false,
 
-  // All options here: https://github.com/webtorrent/webtorrent/blob/master/docs/api.md
   bt: {
     dir: DEFAULT_BT_DIR,
     refresh: false,
@@ -54,22 +62,19 @@ export default RC('hybrid', {
     block: true
   },
 
-  // All options here: https://github.com/ipfs/js-ipfs/blob/master/docs/CONFIG.md
   ipfs: {
     repo: DEFAULT_IPFS_DIR,
     refresh: false,
     status: true,
     block: true
   },
-
-  // All options here: https://github.com/datproject/sdk/#const-hypercore-hyperdrive-resolvename-keypair-derivesecret-registerextension-close--await-sdkopts
+  
   hyper: {
     storage: DEFAULT_HYPER_DIR,
     refresh: false,
     status: true,
     block: true
   },
-
   oui: {
     status: true
   },

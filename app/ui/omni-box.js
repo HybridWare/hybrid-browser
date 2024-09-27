@@ -1,7 +1,9 @@
 /* global HTMLElement, CustomEvent, customElements */
 
-const {CID} = require('multiformats/cid')
+const { looksLikeLegacySSB, convertLegacySSB: makeSSB } = require('ssb-fetch')
+const { CID } = require('multiformats/cid')
 
+const IPNS_PREFIX = '/ipns/'
 const IPFS_PREFIX = '/ipfs/'
 
 class OmniBox extends HTMLElement {
@@ -18,8 +20,8 @@ class OmniBox extends HTMLElement {
   connectedCallback () {
     this.innerHTML = ` 
       <section class="omni-box-header">
-        <button class="hidden omni-box-button omni-box-back" title="Go back in history"><</button>
-        <button class="hidden omni-box-button omni-box-forward" title="Go forward in history">></button>
+        <button class="hidden omni-box-button omni-box-back" title="Go back in history">⬅</button>
+        <button class="hidden omni-box-button omni-box-forward" title="Go forward in history">➡</button>
         <button class="omni-box-button omni-box-home" title="Go to the homepage">⊡</button>
         <form class="omni-box-form">
           <input class="omni-box-target-input" readonly></input>
@@ -60,9 +62,7 @@ class OmniBox extends HTMLElement {
       let url = rawURL
 
       if (!isURL(rawURL)) {
-        if (looksLikeIPFS(rawURL)) {
-          url = makeIPFS(rawURL)
-        } else if (isBareLocalhost(rawURL)) {
+        if (isBareLocalhost(rawURL)) {
           url = makeHttp(rawURL)
         } else if (looksLikeDomain(rawURL)) {
           url = makeHttps(rawURL)
@@ -202,9 +202,6 @@ class OmniBox extends HTMLElement {
 
     if (isURL(query)) {
       finalItems.push(this.makeNavItem(query, `Go to ${query}`))
-    } else if (looksLikeIPFS(query)) {
-      const url = makeIPFS(query)
-      finalItems.push(this.makeNavItem(url, `Go to ${url}`))
     } else if (isBareLocalhost(query)) {
       finalItems.push(this.makeNavItem(makeHttp(query), `Go to http://${query}`))
     } else if (looksLikeDomain(query)) {
@@ -330,21 +327,6 @@ function looksLikeDomain (string) {
 
 function isBareLocalhost (string) {
   return string.match(/^localhost(:[0-9]+)?\/?$/)
-}
-
-function looksLikeIPFS (string) {
-  return string.startsWith(IPFS_PREFIX)
-}
-
-function makeIPFS (path) {
-  const sections = path.slice(IPFS_PREFIX.length).split('/')
-  const cid = sections[0]
-  if (cid.startsWith('Qm')) {
-    const parsed = CID.parse(cid)
-    sections[0] = parsed.toV1().toString()
-  }
-  const final = sections.join('/')
-  return `ipfs://${final}`
 }
 
 customElements.define('omni-box', OmniBox)

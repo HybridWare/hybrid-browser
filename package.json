@@ -1,11 +1,11 @@
 {
   "name": "hybrid-browser",
   "version": "3.0.0",
-  "description": "A minimal web browser for the distributed web",
-  "main": "app/main.js",
+  "description": "A peer to peer browser",
+  "main": "app/main.cjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "npm run lint",
     "start": "electron .",
     "debug": "env NODE_ENV=debug electron --trace-uncaught .",
     "builder": "electron-builder build --publish never",
@@ -67,7 +67,7 @@
     },
     "protocols": [
       {
-        "name": "hypercore-protocol",
+        "name": "Holepunch",
         "schemes": [
           "hyper"
         ],
@@ -96,14 +96,14 @@
         "role": "Viewer"
       },
       {
-        "name": "ipfs",
+        "name": "InterPlanetary File System",
         "schemes": [
           "ipfs"
         ],
         "role": "Viewer"
       },
       {
-        "name": "bittorrent",
+        "name": "BitTorrent",
         "schemes": [
           "magnet",
           "bt"
@@ -179,9 +179,9 @@
   "homepage": "https://github.com/HybridWare/hybrid-browser#readme",
   "devDependencies": {
     "@netless/extension-flat": "^1.0.1",
-    "electron": "^31.4.0",
-    "electron-builder": "^24.13.3",
-    "standard": "^17.1.0"
+    "electron": "^32.1.2",
+    "electron-builder": "^25.0.5",
+    "standard": "^17.1.2"
   },
   "dependencies": {
     "@chainsafe/libp2p-gossipsub": "^13.2.0",
@@ -190,6 +190,7 @@
     "@helia/unixfs": "^3.0.1",
     "@libp2p/identify": "^2.1.5",
     "@libp2p/kad-dht": "^12.1.5",
+    "@roamhq/wrtc": "^0.8.0",
     "abort-controller": "^3.0.0",
     "blockstore-fs": "^1.1.10",
     "create-desktop-shortcuts": "^1.11.0",
@@ -198,10 +199,9 @@
     "decompress": "^4.2.1",
     "delay": "^6.0.0",
     "detect-port": "^1.5.1",
-    "electron-extended-webextensions": "github:ducksandgoats/electron-extended-WebExtensions",
+    "electron-extended-webextensions": "github:HybridWare/electron-extended-WebExtensions",
     "fs-extra": "^11.2.0",
     "gemini-to-html": "^2.1.0",
-    "get-urls": "^12.1.0",
     "gopher-lib": "^0.2.0",
     "helia": "^4.0.2",
     "http-proxy-agent": "^7.0.2",
@@ -209,10 +209,12 @@
     "mime": "^4.0.1",
     "multiformats": "^9.9.0",
     "node-fetch": "^3.3.2",
+    "p-queue": "^8.0.1",
     "range-parser": "^1.2.1",
     "rc": "^1.2.8",
     "sanitize-filename": "^1.6.3",
     "scoped-fs": "^1.4.1",
+    "semver": "^7.6.3",
     "socks-proxy-agent": "^8.0.2",
     "streamx": "^2.16.1",
     "torrentz": "^15.0.4",

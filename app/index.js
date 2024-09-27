@@ -10,14 +10,14 @@ import { WindowManager } from './window.js'
 import { createExtensions } from './extensions/index.js'
 import * as history from './history.js'
 import { version } from './version.js'
+import * as llm from './llm.js'
 
 const IS_DEBUG = process.env.NODE_ENV === 'debug'
 
 const __dirname = fileURLToPath(new URL('./', import.meta.url))
-// const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const WEB_PARTITION = 'persist:web-content'
-const LOGO_FILE = path.join(__dirname, '../build/icon-small.png')
+const LOGO_FILE = path.join(__dirname, './../build/icon-small.png')
 
 // Wait for two minutes of use before registering handlers
 const REGISTRATION_DELAY = 2 * 60 * 1000
@@ -102,8 +102,6 @@ function init () {
   })
 }
 
-protocols.registerPrivileges()
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -145,6 +143,8 @@ async function onready () {
 
   const webSession = session.fromPartition(WEB_PARTITION)
 
+  llm.addPreloads(webSession)
+
   const electronSection = /Electron.+ /i
   const existingAgent = webSession.getUserAgent()
   const newAgent = existingAgent.replace(electronSection, `HybridDesktop/${version}`)
@@ -152,19 +152,17 @@ async function onready () {
   webSession.setUserAgent(newAgent)
   session.defaultSession.setUserAgent(newAgent)
 
-  console.log('Setting up protocol handlers')
+  const actions = createActions({
+    createWindow
+  })
 
-  await protocols.checkProtocols()
+  console.log('Setting up protocol handlers')
 
   await protocols.setupProtocols(webSession)
 
   console.log('Registering context menu')
 
-  const actions = createActions({
-    createWindow
-  })
-  
-  registerMenu(actions)
+  await registerMenu(actions)
 
   function updateBrowserActions (tabId, actions) {
     windowManager.reloadBrowserActions(tabId)

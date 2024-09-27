@@ -5,7 +5,7 @@ export default async function makeIPFSFetch (opts = {}) {
     const { Readable } = await import('streamx')
     const path = await import('path')
     const fs = await import('fs/promises')
-    // const fse = await import('fs-extra')
+    const fse = await import('fs-extra')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
     const block = finalOpts.block
@@ -20,20 +20,14 @@ export default async function makeIPFSFetch (opts = {}) {
       'Access-Control-Request-Headers': '*'
     }
 
-    async function pathExists(arg){
-      try {
-        await fs.access(arg)
-        return true
-      } catch (error) {
-        console.error(error)
-        return false
-      }
+    if(!await fse.pathExists(repo)){
+      await fse.ensureDir(repo)
     }
     
     const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});} })()
     // console.log(Object.keys(app), app)
     const fileSystem = await (async () => {const {unixfs} = await import('@helia/unixfs');return unixfs(app);})()
-    if(!await pathExists(path.join(repo, 'block.txt'))){
+    if(!await fse.pathExists(path.join(repo, 'block.txt'))){
       await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify([]))
     }
     const blockList = block ? JSON.parse((await fs.readFile(path.join(repo, 'block.txt'))).toString('utf-8')) : null

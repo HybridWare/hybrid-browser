@@ -3,13 +3,13 @@
     "version": "1.1.1",
     "url": "https://github.com/HybridWare/extension-hybrid-history/releases/download/v{version}/v{version}.zip"
   },
-  "agregore-renderer": {
-    "version": "2.1.5",
-    "url": "https://github.com/AgregoreWeb/extension-agregore-renderer/releases/download/v{version}/agregore-renderer-v{version}.zip"
+  "hybrid-renderer": {
+    "version": "1.1.1",
+    "url": "https://github.com/HybridWare/extension-hybrid-renderer/releases/download/v{version}/v{version}.zip"
   },
-  "agregore-qr-share": {
-    "version": "1.0.1",
-    "url": "https://github.com/AgregoreWeb/extension-agregore-qr-share/releases/download/v{version}/agregore-qr-share-v{version}.zip"
+  "hybrid-qr-share": {
+    "version": "1.1.1",
+    "url": "https://github.com/HybridWare/extension-hybrid-qr-share/releases/download/v{version}/v{version}.zip"
   },
   "archiveweb.page": {
     "version": "0.10.0",

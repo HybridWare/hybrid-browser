@@ -1,10 +1,11 @@
-import { BrowserWindow, BrowserView, ipcMain, app } from 'electron'
-import path from 'path'
-import EventEmitter from 'events'
-import { fileURLToPath } from 'url'
+import {BrowserWindow, BrowserView, ipcMain, app} from 'electron'
+import path from 'node:path'
+import EventEmitter from 'node:events'
+import { fileURLToPath } from 'node:url'
+
 import fs from 'fs-extra'
 import PQueue from 'p-queue'
-import delay from "delay"
+import delay from 'delay'
 
 import Config from './config.js'
 
@@ -16,10 +17,9 @@ const {
 const IS_DEBUG = process.env.NODE_ENV === 'debug'
 
 const __dirname = fileURLToPath(new URL('./', import.meta.url))
-// const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const MAIN_PAGE = path.join(__dirname, './ui/index.html')
-const LOGO_FILE = path.join(__dirname, '../build/icon-small.png')
+const LOGO_FILE = path.join(__dirname, './../build/icon-small.png')
 const PERSIST_FILE = path.join(app.getPath('userData'), 'lastOpened.json')
 
 const DEFAULT_SAVE_INTERVAL = 30 * 1000
@@ -330,7 +330,6 @@ export class Window extends EventEmitter {
     this.web.on('update-target-url', (event, url) => {
       this.send('update-target-url', url)
     })
-    // this.window.once('ready-to-show', () => this.window.show())
 
     this.web.on('dom-ready', async () => {
       const hasStyles = await this.web.executeJavaScript(HAS_SHEET)
