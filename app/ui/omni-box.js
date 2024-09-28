@@ -1,11 +1,5 @@
 /* global HTMLElement, CustomEvent, customElements */
 
-const { looksLikeLegacySSB, convertLegacySSB: makeSSB } = require('ssb-fetch')
-const { CID } = require('multiformats/cid')
-
-const IPNS_PREFIX = '/ipns/'
-const IPFS_PREFIX = '/ipfs/'
-
 class OmniBox extends HTMLElement {
   constructor () {
     super()

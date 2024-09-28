@@ -19,6 +19,10 @@ const pageTitle = $('title')
 
 const searchParams = new URL(window.location.href).searchParams
 
+// remove window.searchParams if issues arise
+window.searchParams = searchParams
+// remove window.searchParams if issues arise
+
 const toNavigate = searchParams.has('url') ? searchParams.get('url') : DEFAULT_PAGE
 
 const rawFrame = searchParams.get('rawFrame') === 'true'
