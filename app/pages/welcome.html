@@ -8,71 +8,136 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <style>
-	@import url("hybrid://theme/style.css");
-
-	body,
-	html {
+  @import url("hybrid://theme/vars.css");
+  
+	body, html {
 		display: flex;
 		flex: 1;
 		margin: 0px;
 		padding: 0px;
 		width: 100%;
-		height: 100%;
+		/* height: 100%; */
 		flex-direction: column;
-		justify-content: center;
-		align-items: center;
+    justify-content: center;
+    align-items: center;
+    background: var(--hy-theme-background);
+    color: var(--hy-theme-text);
+    font-family: var(--hy-theme-font-family);
 	}
-
 	img {
 		width: 40vmin;
+		margin: 15px 15px;
+	}
+
+	a {
+    color: var(--hy-theme-primary);
+    text-decoration: none;
+    margin: 0.1em;
+    display: inline-block;
+  }
+
+  a:visited {
+    color: var(--hy-theme-secondary);
+  }
+
+	a::before, a::after {
+    content: " ☆ "
 	}
 
 	h1 {
-		text-transform: uppercase;
-		color: var(--hy-theme-primary);
+	  text-transform: uppercase;
 	}
 
 	p {
-		text-align: center;
-		margin: 1em;
+    text-align: center;
+    margin: 1em;
 	}
 
 	footer {
-		text-align: center;
-		font-size: 0.4em;
+    color: var(--hy-theme-primary);
+    text-align: center;
+    font-size: 0.4em;
+	}
+
+	hr {
+		width: 50%;
 	}
 </style>
 
-<img src="hybrid://icon.svg" title="Hybrid Logo. Eight arrows pointing out with an eye in the middle." />
+<img src="hybrid://icon.svg" />
 
 <h1>
-	Hybrid
+Hybrid
 </h1>
 
 <p>
-	<a href="hyper://hybrid.mauve.moe/explore">Explore</a>
-	<a href="hyper://hybrid.mauve.moe/docs/examples/p2pad/">Build</a>
-</p>
-<p>
-	<a href="hyper://hybrid.mauve.moe/">Hybrid Website</a>
-	<a href="https://matrix.to/#/#hybrid:mauve.moe">Matrix Community</a>
-	<a href="https://hypercore-protocol.org">Hypercore Protocol</a>
-	<a href="ipns://ipfs.io/">IPFS Protocol</a>
-	<a href="gemini://geminiprotocol.net/">Gemini Protocol</a>
+	<a href="hybrid://about">
+		About
+	</a>
 </p>
 
-<footer id="version"></footer>
+<p>
+	<a href="https://censorship.no/user-manual/en/intro/ouinet.html">
+		OUI
+	</a>
+	<a href="https://www.bittorrent.com/">
+		BT
+	</a>
+	<a href="https://ipfs.io/">
+		IPFS
+	</a>
+	<a href="https://hypercore-protocol.org/">
+		HYPER
+	</a>
+	<a href="https://www.torproject.org/">
+		TOR
+	</a>
+	<a href="https://geti2p.net/">
+		IIP
+	</a>
+	<a href="https://lokinet.org/">
+		LOK
+	</a>
+</p>
+<hr/>
+<p>
+	<a href="hybrid://oui">
+		oui://
+	</a>
+	<a href="hybrid://bt">
+		bt://
+	</a>
+	<a href="hybrid://ipfs">
+		ipfs://
+	</a>
+	<a href="hybrid://hyper">
+		hyper://
+	</a>
+	<a href="hybrid://tor">
+		tor://
+	</a>
+	<a href="hybrid://iip">
+		iip://
+	</a>
+	<a href="hybrid://lok">
+		lok://
+	</a>
+</p>
+
+<footer id="version">
+
+</footer>
 
 <script>
-	async function load() {
-		const response = await fetch('hybrid://about')
-		const about = await response.json()
-		const { version } = about
+async function load() {
+const response = await fetch('hybrid://info')
+const about = await response.json()
+const {version} = about
 
-		console.log(about)
+console.log(about)
 
-		document.querySelector('#version').innerText = version
-	}
+document.querySelector('#version').innerText = version
+}
 
-	load()
+load()
 </script>
