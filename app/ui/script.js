@@ -100,7 +100,9 @@ currentWindow.on('leave-html-full-screen', () => {
   if (!rawFrame) nav.classList.toggle('hidden', false)
 })
 currentWindow.on('update-target-url', async (url) => {
-  search.showTarget(url)
+  if(search.showTarget){
+    search.showTarget(url)
+  }
 })
 currentWindow.on('browser-actions-changed', () => {
   actions.renderLatest()
