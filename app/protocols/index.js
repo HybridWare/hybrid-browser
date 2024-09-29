@@ -156,7 +156,7 @@ export async function setupProtocols (session) {
 
   // topic
   const {default: createTopicHandler} = await import('./topic-protocol.js')
-  const { handler: topicHandler, close: closeTopic } = await createTopicHandler({...ipfs, helia}, session)
+  const { handler: topicHandler, close: closeTopic } = await createTopicHandler({...hyper, sdk}, session)
   onCloseHandlers.push(closeTopic)
   sessionProtocol.handle('topic', topicHandler)
   globalProtocol.handle('topic', topicHandler)
