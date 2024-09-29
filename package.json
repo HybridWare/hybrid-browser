@@ -179,7 +179,7 @@
   "homepage": "https://github.com/HybridWare/hybrid-browser#readme",
   "devDependencies": {
     "@netless/extension-flat": "^1.0.1",
-    "electron": "^29.0.0",
+    "electron": "^32.1.2",
     "electron-builder": "^25.0.5",
     "standard": "^17.1.2"
   },
