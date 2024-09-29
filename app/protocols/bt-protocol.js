@@ -4,7 +4,7 @@ export default async function makeBTFetch (opts = {}) {
     const path = await import('path')
     const fs = await import('fs/promises')
     const {Readable} = await import('stream')
-    const fse = await import('fs-extra')
+    // const fse = await import('fs-extra')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
     const checkHash = /^[a-fA-F0-9]{40}$/
@@ -22,12 +22,21 @@ export default async function makeBTFetch (opts = {}) {
       'Access-Control-Request-Headers': '*'
     }
 
-    if(!await fse.pathExists(dir)){
-      await fse.ensureDir(dir)
+    async function checkPath(data){
+      try {
+        await fs.access(data)
+        return true
+      } catch {
+        return false
+      }
+    }
+
+    if(!await checkPath(dir)){
+      await fs.mkdir(dir, {recursive: true})
     }
   
     const app = await (async () => {if(finalOpts.torrentz){return finalOpts.torrentz}else{const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(finalOpts);}})()
-    if(!await fse.pathExists(path.join(dir, 'block.txt'))){
+    if(!await checkPath(path.join(dir, 'block.txt'))){
       await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify([]))
     }
     const blockList = block ? JSON.parse((await fs.readFile(path.join(dir, 'block.txt'))).toString('utf-8')) : null

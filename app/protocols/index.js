@@ -1,7 +1,6 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
 import Relay from '../relay.js'
-import fse from 'fs-extra'
 
 const P2P_PRIVILEGES = {
   standard: true,
@@ -123,18 +122,6 @@ export function setAsDefaultProtocolClient () {
 
 export async function setupProtocols (session) {
   const { protocol: sessionProtocol } = session
-
-  if(!await fse.pathExists(bt.dir)){
-    await fse.ensureDir(bt.dir)
-  }
-
-  if(!await fse.pathExists(ipfs.repo)){
-    await fse.ensureDir(ipfs.repo)
-  }
-
-  if(!await fse.pathExists(hyper.storage)){
-    await fse.ensureDir(hyper.storage)
-  }
 
   const {default: createBrowserHandler} = await import('./browser-protocol.js')
   const browserProtocolHandler = await createBrowserHandler()
