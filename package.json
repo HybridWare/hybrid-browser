@@ -179,7 +179,7 @@
   "homepage": "https://github.com/HybridWare/hybrid-browser#readme",
   "devDependencies": {
     "@netless/extension-flat": "^1.0.1",
-    "electron": "^32.1.2",
+    "electron": "^29.0.0",
     "electron-builder": "^25.0.5",
     "standard": "^17.1.2"
   },
@@ -200,6 +200,7 @@
     "delay": "^6.0.0",
     "detect-port": "^1.5.1",
     "electron-extended-webextensions": "github:HybridWare/electron-extended-WebExtensions",
+    "event-iterator": "^2.0.0",
     "fs-extra": "^11.2.0",
     "gemini-to-html": "^2.1.0",
     "gopher-lib": "^0.2.0",

@@ -151,12 +151,6 @@ export default async function makeBTFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } else if (reqHeaders.has('x-copy') || searchParams.has('x-copy')) {
-            if(isItBlock){
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
-            }
-            const torrentData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.userTorrent(mid.mainId, mid.mainPath, { ...useOpts, id: JSON.parse(reqHeaders.get('x-copy') || searchParams.get('x-copy')) }))
-            return new Response(null, { status: 200, headers: { ...mainHeaders, 'X-Path': torrentData }})
           } else {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})

@@ -149,17 +149,6 @@ export default async function makeIPFSFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } else if (reqHeaders.has('x-pin') || searchParams.has('x-pin')) {
-            if(isItBlock){
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
-            }
-            const usePin = JSON.parse(reqHeaders.get('x-pin') || searchParams.get('x-pin')) ? await waitForStuff({num: useOpts.timeout, msg: 'add pin'}, app.pins.add(CID.parse(useHost), useOpts)) : await waitForStuff({num: useOpts.timeout, msg: 'add pin'}, app.pins.rm(CID.parse(useHost), useOpts))
-            const useLink = `ipfs://${path.join(usePin.cid.toV1().toString(), usePath).replace(/\\/g, "/")}`
-            const useHeaders = { 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"` }
-            if (type) {
-              useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
-            }
-            return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders}})
           } else {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})

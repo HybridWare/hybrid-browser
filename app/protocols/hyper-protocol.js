@@ -157,39 +157,6 @@ export default async function makeHyperFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } else if (reqHeaders.has('x-load') || searchParams.has('x-load')) {
-            if(isItBlock){
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
-            }
-            const useDrive = await waitForStuff({ num: useOpts.timeout, msg: 'drive' }, checkForDrive(main.useHost))
-            const useData = await stat(useDrive, main)
-            if (JSON.parse(reqHeaders.get('x-load') || searchParams.get('x-load'))) {
-              if(useData.directory){
-                await useDrive.download(main.usePath, useOpts)
-                const useHeaders = {}
-                useHeaders['X-Link'] = `hyper://${useDrive.key.toString('hex')}${main.usePath}`
-                useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-                return new Response(null, { status: 200, headers: { ...mainHeaders, 'Content-Length': '0', ...useHeaders } })
-              } else {
-                await useDrive.get(useData.key)
-                const useHeaders = {}
-                useHeaders['X-Link'] = `hyper://${useDrive.key.toString('hex')}${useData.key}`
-                useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-                return new Response(null, { status: 200, headers: { ...mainHeaders, 'Content-Length': `${useData.value.blob.byteLength}`, ...useHeaders } })
-              }
-            } else {
-              if(useData.directory){
-                for await (const test of useDrive.list(main.usePath)){
-                  await useDrive.del(test.key)
-                }
-                const useLink = 'hyper://' + path.join(useDrive.key.toString('hex'), main.usePath).replace(/\\/g, '/')
-                return new Response(null, { status: 200, headers: { ...mainHeaders, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"` }})
-              } else {
-                await useDrive.del(main.usePath)
-                const useLink = 'hyper://' + path.join(useDrive.key.toString('hex'), main.usePath).replace(/\\/g, '/')
-                return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
-              }
-            }
           } else {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
