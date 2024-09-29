@@ -2,7 +2,7 @@ export default async function makePubsubFetch (opts = {}) {
     const { Readable } = await import('streamx')
     const path = await import('path')
     const fs = await import('fs/promises')
-    // const fse = await import('fs-extra')
+    const fse = await import('fs-extra')
     const { EventIterator } = await import('event-iterator')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
@@ -16,22 +16,22 @@ export default async function makePubsubFetch (opts = {}) {
       'Access-Control-Request-Headers': '*'
     }
 
-    async function checkPath(data){
-      try {
-        await fs.access(data)
-        return true
-      } catch {
-        return false
-      }
-    }
+    // async function checkPath(data){
+    //   try {
+    //     await fs.access(data)
+    //     return true
+    //   } catch {
+    //     return false
+    //   }
+    // }
 
-    if(!await checkPath(repo)){
-      await fs.mkdir(repo, {recursive: true})
+    if(!await fse.pathExists(repo)){
+      await fse.ensureDir(repo)
     }
     
     const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});} })()
     // const fileSystem = await (async () => {const {unixfs} = await import('@helia/unixfs');return unixfs(app);})()
-    if(!await checkPath(path.join(repo, 'block.txt'))){
+    if(!await fse.pathExists(path.join(repo, 'block.txt'))){
       await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify([]))
     }
     const blockList = block ? JSON.parse((await fs.readFile(path.join(repo, 'block.txt'))).toString('utf-8')) : null

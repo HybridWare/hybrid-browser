@@ -1,9 +1,7 @@
 export default async function makeTopicFetch (opts = {}) {
-    const {default: mime} = await import('mime')
-    const {default: parseRange} = await import('range-parser')
     const { Readable, pipelinePromise } = await import('streamx')
     const fs = await import('fs/promises')
-    // const fse = await import('fs-extra')
+    const fse = await import('fs-extra')
     const { EventIterator } = await import('event-iterator')
     const path = await import('path')
     const DEFAULT_OPTS = {timeout: 30000}
@@ -18,21 +16,21 @@ export default async function makeTopicFetch (opts = {}) {
       'Access-Control-Request-Headers': '*'
     }
 
-    async function checkPath(data){
-      try {
-        await fs.access(data)
-        return true
-      } catch {
-        return false
-      }
-    }
+    // async function checkPath(data){
+    //   try {
+    //     await fs.access(data)
+    //     return true
+    //   } catch {
+    //     return false
+    //   }
+    // }
 
-    if(!await checkPath(storage)){
-      await fs.mkdir(storage, {recursive: true})
+    if(!await fse.pathExists(storage)){
+      await fse.ensureDir(storage)
     }
 
     const app = await (async (finalOpts) => {if(finalOpts.sdk){return finalOpts.sdk}else{const SDK = await import('hyper-sdk');const sdk = await SDK.create(finalOpts);return sdk;}})()
-    if(!await checkPath(path.join(storage, 'block.txt'))){
+    if(!await fse.pathExists(path.join(storage, 'block.txt'))){
       await fs.writeFile(path.join(storage, 'block.txt'), JSON.stringify([]))
     }
     const blockList = block ? JSON.parse((await fs.readFile(path.join(storage, 'block.txt'))).toString('utf-8')) : null
