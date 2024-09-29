@@ -32,7 +32,7 @@ export default async function makeHyperFetch (opts = {}) {
       await fse.ensureDir(storage)
     }
 
-    const app = await (async (finalOpts) => {if(finalOpts.sdk){return finalOpts.sdk}else{const SDK = await import('hyper-sdk');const sdk = await SDK.create(finalOpts);return sdk;}})(finalOpts)
+    const app = await (async () => {if(finalOpts.sdk){return finalOpts.sdk}else{const SDK = await import('hyper-sdk');const sdk = await SDK.create(finalOpts);return sdk;}})()
     if(!await fse.pathExists(path.join(storage, 'block.txt'))){
       await fs.writeFile(path.join(storage, 'block.txt'), JSON.stringify([]))
     }
