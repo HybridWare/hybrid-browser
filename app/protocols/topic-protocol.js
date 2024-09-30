@@ -117,11 +117,11 @@ export default async function makeTopicFetch (opts = {}) {
           obj.stop = stop
           // obj.status = false
           // const disc = app.swarm.join(mainURL.hostname, {})
-          app.swarm.join(hostname, {})
+          app.swarm.join(Buffer.concat([hostname], 32), {})
           current.set(hostname, obj)
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
-              app.swarm.leave(hostname).then(console.log).catch(console.error)
+              app.swarm.leave(Buffer.concat([hostname], 32)).then(console.log).catch(console.error)
               const testing = current.get(hostname)
               testing.ids.forEach((e) => {
                   if(app.connections.has(e)){
