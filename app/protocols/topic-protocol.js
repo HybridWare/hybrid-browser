@@ -73,42 +73,33 @@ export default async function makeTopicFetch (opts = {}) {
       if(method === 'GET'){
         if(current.has(mainURL.hostname)){
             throw new Error('currently subscribed')
-        }
-        const obj = {}
-        const events = new EventIterator(({ push, fail, stop }) => {
-            obj.push = push
-            obj.fail = fail
-            obj.stop = stop
-            obj.ids = new Set()
-            // const disc = app.swarm.join(mainURL.hostname, {})
-            app.swarm.join(mainURL.hostname, {})
-            current.set(mainURL.hostname, obj)
-            return () => {
-                // disc.destroy().then(console.log).catch(console.error)
-                app.swarm.leave(mainURL.hostname).then(console.log).catch(console.error)
-                const testing = current.get(mainURL.hostname)
-                testing.ids.forEach((e) => {
-                    if(app.connections.has(e)){
-                        app.connections.get(e).destroy()
-                    }
-                })
-                testing.ids.clear()
-                current.delete(mainURL.hostname)
-                stop()
+        } else {
+          const test = iter(mainURL.hostname)
+          test.obj.ids.forEach((i) => {
+            if(app.connections.has(i)){
+              app.connections.get(i).write(body)
             }
           })
-          return new Response(events, {status: 200})
-      } else if(method === 'POST'){
-        if(!current.has(mainURL.hostname)){
-          throw new Error('currently subscribed')
+          return new Response(test.ev, {status: 200})
         }
-        const test = current.get(mainURL.hostname)
-        test.ids.forEach((i) => {
-          if(app.connections.has(i)){
-            app.connections.get(i).write(body)
-          }
-        })
-        return new Response(null, {status: 200})
+      } else if(method === 'POST'){
+        if(current.has(mainURL.hostname)){
+          const test = current.get(mainURL.hostname)
+          test.ids.forEach((i) => {
+            if(app.connections.has(i)){
+              app.connections.get(i).write(body)
+            }
+          })
+          return new Response(null, {status: 200})
+        } else {
+            const test = iter(mainURL.hostname)
+            test.obj.ids.forEach((i) => {
+              if(app.connections.has(i)){
+                app.connections.get(i).write(body)
+              }
+            })
+            return new Response(test.ev, {status: 200})
+        }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
@@ -116,6 +107,33 @@ export default async function makeTopicFetch (opts = {}) {
         console.error(error)
         return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
       }
+    }
+
+    function iter(hostname){
+      const obj = {ids: new Set()}
+      const test =  new EventIterator(({ push, fail, stop }) => {
+          obj.push = push
+          obj.fail = fail
+          obj.stop = stop
+          // obj.status = false
+          // const disc = app.swarm.join(mainURL.hostname, {})
+          app.swarm.join(hostname, {})
+          current.set(hostname, obj)
+          return () => {
+              // disc.destroy().then(console.log).catch(console.error)
+              app.swarm.leave(hostname).then(console.log).catch(console.error)
+              const testing = current.get(hostname)
+              testing.ids.forEach((e) => {
+                  if(app.connections.has(e)){
+                      app.connections.get(e).destroy()
+                  }
+              })
+              testing.ids.clear()
+              current.delete(hostname)
+              stop()
+          }
+        })
+        return {obj, ev: test}
     }
   
     async function close(){

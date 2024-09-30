@@ -61,25 +61,23 @@ export default async function makePubsubFetch (opts = {}) {
       if(method === 'GET'){
         if(current.has(mainURL.hostname)){
             throw new Error('currently subscribed')
+        } else {
+          const obj = {}
+          const events = new EventIterator(({ push, fail, stop }) => {
+              obj.push = push
+              obj.fail = fail
+              obj.stop = stop
+              app.libp2p.services.pubsub.subscribe(mainURL.hostname)
+              current.set(mainURL.hostname, obj)
+              return () => {
+                  app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  current.delete(mainURL.hostname)
+                  stop()
+              }
+            })
+            return new Response(events, {status: 200})
         }
-        const obj = {}
-        const events = new EventIterator(({ push, fail, stop }) => {
-            obj.push = push
-            obj.fail = fail
-            obj.stop = stop
-            app.libp2p.services.pubsub.subscribe(mainURL.hostname)
-            current.set(mainURL.hostname, obj)
-            return () => {
-                app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
-                current.delete(mainURL.hostname)
-                stop()
-            }
-          })
-          return new Response(events, {status: 200})
       } else if(method === 'POST'){
-        if(!current.has(mainURL.hostname)){
-            throw new Error('currently subscribed')
-        }
         app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(body))
         return new Response(null, {status: 200})
       } else {

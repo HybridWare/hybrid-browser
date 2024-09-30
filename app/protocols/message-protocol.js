@@ -54,38 +54,36 @@ export default async function makeMessageFetch (opts = {}) {
         if(method === 'GET'){
             if(current.has(mainURL.hostname)){
                 throw new Error('currently subscribed')
+            } else {
+              const torrent = app.checkId.get(mainURL.hostname)
+              const obj = {}
+              const events = new EventIterator(({ push, fail, stop }) => {
+                  obj.push = push
+                  obj.fail = fail
+                  obj.stop = stop
+                  function handle () {
+                      torrent.off('message', push)
+                      torrent.off('over', handle)
+                      current.delete(mainURL.hostname)
+                      stop()
+                  }
+                  torrent.on('message', push)
+                  torrent.on('over', handle)
+                  obj.func = () => {
+                    torrent.off('message', push)
+                    torrent.off('over', handle)
+                  }
+                  current.set(mainURL.hostname, obj)
+                  return () => {
+                      torrent.off('message', push)
+                      torrent.off('over', handle)
+                      current.delete(mainURL.hostname)
+                      stop()
+                  }
+                })
+                return new Response(events, {status: 200})
             }
-            const torrent = app.checkId.get(mainURL.hostname)
-            const obj = {}
-            const events = new EventIterator(({ push, fail, stop }) => {
-                obj.push = push
-                obj.fail = fail
-                obj.stop = stop
-                function handle () {
-                    torrent.off('message', push)
-                    torrent.off('over', handle)
-                    current.delete(mainURL.hostname)
-                    stop()
-                }
-                torrent.on('message', push)
-                torrent.on('over', handle)
-                obj.func = () => {
-                  torrent.off('message', push)
-                  torrent.off('over', handle)
-                }
-                current.set(mainURL.hostname, obj)
-                return () => {
-                    torrent.off('message', push)
-                    torrent.off('over', handle)
-                    current.delete(mainURL.hostname)
-                    stop()
-                }
-              })
-              return new Response(events, {status: 200})
         } else if(method === 'POST'){
-            if(!current.has(mainURL.hostname)){
-                throw new Error('currently subscribed')
-            }
             const torrent = app.checkId.get(mainURL.hostname)
             torrent.say(body)
             return new Response(null, {status: 200})
