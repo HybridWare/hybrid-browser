@@ -58,7 +58,7 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'iips', privileges: P2P_PRIVILEGES },
   { scheme: 'lok', privileges: CS_PRIVILEGES },
   { scheme: 'loks', privileges: P2P_PRIVILEGES },
-  { scheme: 'message', privileges: P2P_PRIVILEGES },
+  { scheme: 'msg', privileges: P2P_PRIVILEGES },
   { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
   { scheme: 'topic', privileges: P2P_PRIVILEGES }
 ])

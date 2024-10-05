@@ -18,6 +18,7 @@ export const dependencies = {
   "delay": "^6.0.0",
   "detect-port": "^1.5.1",
   "electron-extended-webextensions": "github:HybridWare/electron-extended-WebExtensions",
+  "event-iterator": "^2.0.0",
   "fs-extra": "^11.2.0",
   "gemini-to-html": "^2.1.0",
   "gopher-lib": "^0.2.0",
@@ -35,7 +36,7 @@ export const dependencies = {
   "semver": "^7.6.3",
   "socks-proxy-agent": "^8.0.2",
   "streamx": "^2.16.1",
-  "torrentz": "^15.0.4",
+  "torrentz": "^15.0.5",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
   "wrtc": "^0.4.7",
   "ws": "^8.18.0"

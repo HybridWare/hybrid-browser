@@ -78,7 +78,7 @@ export default async function makePubsubFetch (opts = {}) {
             return new Response(events, {status: 200})
         }
       } else if(method === 'POST'){
-        app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(body))
+        await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(body))
         return new Response(null, {status: 200})
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})

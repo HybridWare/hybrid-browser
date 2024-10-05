@@ -79,7 +79,7 @@ export function registerPrivileges () {
     { scheme: 'iips', privileges: P2P_PRIVILEGES },
     { scheme: 'lok', privileges: CS_PRIVILEGES },
     { scheme: 'loks', privileges: P2P_PRIVILEGES },
-    { scheme: 'message', privileges: P2P_PRIVILEGES },
+    { scheme: 'msg', privileges: P2P_PRIVILEGES },
     { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
     { scheme: 'topic', privileges: P2P_PRIVILEGES }
   ])
@@ -115,7 +115,7 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('iips')
   app.setAsDefaultProtocolClient('lok')
   app.setAsDefaultProtocolClient('loks')
-  app.setAsDefaultProtocolClient('message')
+  app.setAsDefaultProtocolClient('msg')
   app.setAsDefaultProtocolClient('pubsub')
   app.setAsDefaultProtocolClient('topic')
 }
@@ -130,19 +130,19 @@ export async function setupProtocols (session) {
 
   console.log('registered hybrid protocol')
 
-  const torrentz = await (async () => {const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(bt);})()
+  const torrentz = await (async () => {const {default: Torrentz} = await import('torrentz');return new Torrentz(bt);})()
   const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});})()
   const sdk = await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})()
 
-  // message
-  const {default: createMessageHandler} = await import('./message-protocol.js')
-  const { handler: messageHandler, close: closeMessage } = await createMessageHandler({...bt, torrentz}, session)
-  onCloseHandlers.push(closeMessage)
-  sessionProtocol.handle('message', messageHandler)
-  globalProtocol.handle('message', messageHandler)
+  // msg
+  const {default: createMsgHandler} = await import('./msg-protocol.js')
+  const { handler: msgHandler, close: closeMsg } = await createMsgHandler({...bt, torrentz}, session)
+  onCloseHandlers.push(closeMsg)
+  sessionProtocol.handle('msg', msgHandler)
+  globalProtocol.handle('msg', msgHandler)
 
-  console.log('registered message protocol')
-  // message
+  console.log('registered msg protocol')
+  // msg
 
   // pubsub
   const {default: createPubsubHandler} = await import('./pubsub-protocol.js')

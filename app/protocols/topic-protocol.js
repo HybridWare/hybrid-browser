@@ -110,6 +110,7 @@ export default async function makeTopicFetch (opts = {}) {
     }
 
     function iter(hostname){
+      const buf = Buffer.concat([Buffer.from(hostname)], 32)
       const obj = {ids: new Set()}
       const test =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
@@ -117,11 +118,11 @@ export default async function makeTopicFetch (opts = {}) {
           obj.stop = stop
           // obj.status = false
           // const disc = app.swarm.join(mainURL.hostname, {})
-          app.swarm.join(Buffer.concat([hostname], 32), {})
+          app.swarm.join(buf, {})
           current.set(hostname, obj)
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
-              app.swarm.leave(Buffer.concat([hostname], 32)).then(console.log).catch(console.error)
+              app.swarm.leave(buf).then(console.log).catch(console.error)
               const testing = current.get(hostname)
               testing.ids.forEach((e) => {
                   if(app.connections.has(e)){

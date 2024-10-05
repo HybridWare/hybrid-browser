@@ -1,4 +1,4 @@
-export default async function makeMessageFetch (opts = {}) {
+export default async function makeMsgFetch (opts = {}) {
     const path = await import('path')
     const fs = await import('fs/promises')
     const {Readable} = await import('stream')
@@ -37,7 +37,7 @@ export default async function makeMessageFetch (opts = {}) {
 
     const current = new Map()
 
-    async function makeMessage(session){
+    async function makeMsg(session){
       try {
         const mainURL = new URL(session.url)
         const body = session.body
@@ -62,20 +62,20 @@ export default async function makeMessageFetch (opts = {}) {
                   obj.fail = fail
                   obj.stop = stop
                   function handle () {
-                      torrent.off('message', push)
+                      torrent.off('msg', push)
                       torrent.off('over', handle)
                       current.delete(mainURL.hostname)
                       stop()
                   }
-                  torrent.on('message', push)
+                  torrent.on('msg', push)
                   torrent.on('over', handle)
                   obj.func = () => {
-                    torrent.off('message', push)
+                    torrent.off('msg', push)
                     torrent.off('over', handle)
                   }
                   current.set(mainURL.hostname, obj)
                   return () => {
-                      torrent.off('message', push)
+                      torrent.off('msg', push)
                       torrent.off('over', handle)
                       current.delete(mainURL.hostname)
                       stop()
@@ -114,5 +114,5 @@ export default async function makeMessageFetch (opts = {}) {
       })
     }
 
-    return {handler: makeMessage, close}
+    return {handler: makeMsg, close}
   }
