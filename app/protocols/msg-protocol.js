@@ -83,7 +83,7 @@ export default async function makeMsgFetch (opts = {}) {
                     }
                   })
                   current.set(mainURL.hostname, obj)
-                  return new Response(events, {status: 200})
+                  return new Response(obj.events, {status: 200})
               } else {
                 throw new Error('no torrent')
               }
