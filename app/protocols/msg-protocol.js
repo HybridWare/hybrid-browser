@@ -53,40 +53,58 @@ export default async function makeMsgFetch (opts = {}) {
         }
         if(method === 'GET'){
             if(current.has(mainURL.hostname)){
-                throw new Error('currently subscribed')
+              const obj = current.get(mainURL.hostname)
+              return new Response(obj.events, {status: 200})
             } else {
-              const torrent = app.checkId.get(mainURL.hostname)
-              const obj = {}
-              const events = new EventIterator(({ push, fail, stop }) => {
-                  obj.push = push
-                  obj.fail = fail
-                  obj.stop = stop
-                  function handle () {
+              if(app.checkId.has(mainURL.hostname)){
+                const torrent = app.checkId.get(mainURL.hostname)
+                const obj = {}
+                obj.events = new EventIterator(({ push, fail, stop }) => {
+                    obj.push = push
+                    obj.fail = fail
+                    obj.stop = stop
+                    function handle () {
+                        torrent.off('msg', push)
+                        torrent.off('over', handle)
+                        current.delete(mainURL.hostname)
+                        stop()
+                    }
+                    torrent.on('msg', push)
+                    torrent.on('over', handle)
+                    obj.func = () => {
                       torrent.off('msg', push)
                       torrent.off('over', handle)
-                      current.delete(mainURL.hostname)
-                      stop()
-                  }
-                  torrent.on('msg', push)
-                  torrent.on('over', handle)
-                  obj.func = () => {
-                    torrent.off('msg', push)
-                    torrent.off('over', handle)
-                  }
+                    }
+                    return () => {
+                        torrent.off('msg', push)
+                        torrent.off('over', handle)
+                        current.delete(mainURL.hostname)
+                        stop()
+                    }
+                  })
                   current.set(mainURL.hostname, obj)
-                  return () => {
-                      torrent.off('msg', push)
-                      torrent.off('over', handle)
-                      current.delete(mainURL.hostname)
-                      stop()
-                  }
-                })
-                return new Response(events, {status: 200})
+                  return new Response(events, {status: 200})
+              } else {
+                throw new Error('no torrent')
+              }
             }
         } else if(method === 'POST'){
+          if(app.checkId.has(mainURL.hostname)){
             const torrent = app.checkId.get(mainURL.hostname)
             torrent.say(body)
             return new Response(null, {status: 200})
+          } else {
+            throw new Error('no torrent')
+          }
+        } else if(method === 'DELETE'){
+          if(current.has(mainURL.hostname)){
+            const test = current.get(mainURL.hostname)
+            test.stop()
+            current.delete(mainURL.hostname)
+            return new Response(null, {status: 200})
+          } else {
+            return new Response(null, {status: 400})
+          }
         } else {
             return new Response('invalid method', {status: 400, headers: mainHeaders})
         }

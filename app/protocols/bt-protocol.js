@@ -36,6 +36,10 @@ export default async function makeBTFetch (opts = {}) {
     }
   
     const app = await (async () => {if(finalOpts.torrentz){return finalOpts.torrentz}else{const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(finalOpts);}})()
+    function handleErr(err){
+      console.error(err)
+    }
+    app.on('err', handleErr)
     if(!await fse.pathExists(path.join(dir, 'block.txt'))){
       await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify([]))
     }
@@ -299,6 +303,7 @@ export default async function makeBTFetch (opts = {}) {
     }
   
     async function close(){
+      app.off('err', handleErr)
       for (const data of app.webtorrent.torrents) {
         await new Promise((resolve, reject) => {
           data.destroy({ destroyStore: false }, (err) => {

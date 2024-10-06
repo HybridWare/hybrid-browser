@@ -60,26 +60,36 @@ export default async function makePubsubFetch (opts = {}) {
 
       if(method === 'GET'){
         if(current.has(mainURL.hostname)){
-            throw new Error('currently subscribed')
+          const test = current.get(mainURL.hostname)
+          return new Response(test.events, {status: 200})
         } else {
           const obj = {}
-          const events = new EventIterator(({ push, fail, stop }) => {
+          obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
               obj.stop = stop
               app.libp2p.services.pubsub.subscribe(mainURL.hostname)
-              current.set(mainURL.hostname, obj)
               return () => {
                   app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
                   current.delete(mainURL.hostname)
                   stop()
               }
             })
-            return new Response(events, {status: 200})
+            current.set(mainURL.hostname, obj)
+            return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
         await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(body))
         return new Response(null, {status: 200})
+      } else if(method === 'DELETE'){
+        if(current.has(mainURL.hostname)){
+          const test = current.get(mainURL.hostname)
+          test.stop()
+          current.delete(mainURL.hostname)
+          return new Response(null, {status: 200})
+        } else {
+          return new Response(null, {status: 400})
+        }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }

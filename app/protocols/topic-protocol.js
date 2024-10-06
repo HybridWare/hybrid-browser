@@ -38,20 +38,20 @@ export default async function makeTopicFetch (opts = {}) {
     const current = new Map()
 
     function handle(socket, relay){
-        relay.topics.forEach((topic) => {
-            if(current.has(topic)){
-                const test = current.get(topic)
-                function handler(){
-                    socket.off('data', test.push)
-                    socket.off('error', test.fail)
-                    socket.off('close', handler)
-                }
-                socket.on('data', test.push)
-                socket.on('error', test.fail)
-                socket.on('close', handler)
-                test.ids.add(socket.publicKey)
-            }
-        })
+      relay.topics.forEach((topic) => {
+          if(current.has(topic)){
+              const test = current.get(topic)
+              function handler(){
+                  socket.off('data', test.push)
+                  socket.off('error', test.fail)
+                  socket.off('close', handler)
+              }
+              socket.on('data', test.push)
+              socket.on('error', test.fail)
+              socket.on('close', handler)
+              test.ids.add(socket.publicKey)
+          }
+      })
     }
 
     app.swarm.on('connection', handle)
@@ -72,15 +72,11 @@ export default async function makeTopicFetch (opts = {}) {
 
       if(method === 'GET'){
         if(current.has(mainURL.hostname)){
-            throw new Error('currently subscribed')
+          const test = current.get(mainURL.hostname)
+          return new Response(test.events, {status: 200})
         } else {
           const test = iter(mainURL.hostname)
-          test.obj.ids.forEach((i) => {
-            if(app.connections.has(i)){
-              app.connections.get(i).write(body)
-            }
-          })
-          return new Response(test.ev, {status: 200})
+          return new Response(test.events, {status: 200})
         }
       } else if(method === 'POST'){
         if(current.has(mainURL.hostname)){
@@ -93,12 +89,21 @@ export default async function makeTopicFetch (opts = {}) {
           return new Response(null, {status: 200})
         } else {
             const test = iter(mainURL.hostname)
-            test.obj.ids.forEach((i) => {
+            test.ids.forEach((i) => {
               if(app.connections.has(i)){
                 app.connections.get(i).write(body)
               }
             })
-            return new Response(test.ev, {status: 200})
+            return new Response(test.events, {status: 200})
+        }
+      } else if(method === 'DELETE'){
+        if(current.has(mainURL.hostname)){
+          const test = current.get(mainURL.hostname)
+          test.stop()
+          current.delete(mainURL.hostname)
+          return new Response(null, {status: 200})
+        } else {
+          return new Response(null, {status: 400})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
@@ -112,14 +117,13 @@ export default async function makeTopicFetch (opts = {}) {
     function iter(hostname){
       const buf = Buffer.concat([Buffer.from(hostname)], 32)
       const obj = {ids: new Set()}
-      const test =  new EventIterator(({ push, fail, stop }) => {
+      obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
           obj.fail = fail
           obj.stop = stop
           // obj.status = false
           // const disc = app.swarm.join(mainURL.hostname, {})
           app.swarm.join(buf, {})
-          current.set(hostname, obj)
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
               app.swarm.leave(buf).then(console.log).catch(console.error)
@@ -134,7 +138,8 @@ export default async function makeTopicFetch (opts = {}) {
               stop()
           }
         })
-        return {obj, ev: test}
+        current.set(hostname, obj)
+        return obj
     }
   
     async function close(){
