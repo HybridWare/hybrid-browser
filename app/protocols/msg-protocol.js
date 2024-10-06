@@ -91,7 +91,9 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'POST'){
           if(app.checkId.has(mainURL.hostname)){
             const torrent = app.checkId.get(mainURL.hostname)
-            torrent.say(body)
+            if(torrent.say){
+              torrent.say(body)
+            }
             return new Response(null, {status: 200})
           } else {
             throw new Error('no torrent')
