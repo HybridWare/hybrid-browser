@@ -86,9 +86,9 @@ export default async function makePubsubFetch (opts = {}) {
           const test = current.get(mainURL.hostname)
           test.stop()
           current.delete(mainURL.hostname)
-          return new Response(null, {status: 200})
+          return new Response(mainURL.hostname, {status: 200})
         } else {
-          return new Response(null, {status: 400})
+          return new Response(mainURL.hostname, {status: 400})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
