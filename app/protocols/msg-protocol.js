@@ -56,37 +56,33 @@ export default async function makeMsgFetch (opts = {}) {
               const obj = current.get(mainURL.hostname)
               return new Response(obj.events, {status: 200})
             } else {
-              if(app.checkId.has(mainURL.hostname)){
-                const torrent = app.checkId.get(mainURL.hostname)
-                const obj = {}
-                obj.events = new EventIterator(({ push, fail, stop }) => {
-                    obj.push = push
-                    obj.fail = fail
-                    obj.stop = stop
-                    function handle () {
-                        torrent.off('msg', push)
-                        torrent.off('over', handle)
-                        current.delete(mainURL.hostname)
-                        stop()
-                    }
-                    torrent.on('msg', push)
-                    torrent.on('over', handle)
-                    obj.func = () => {
-                      torrent.off('msg', push)
-                      torrent.off('over', handle)
-                    }
-                    return () => {
-                        torrent.off('msg', push)
-                        torrent.off('over', handle)
-                        current.delete(mainURL.hostname)
-                        stop()
-                    }
-                  })
-                  current.set(mainURL.hostname, obj)
-                  return new Response(obj.events, {status: 200})
-              } else {
-                throw new Error('no torrent')
-              }
+              const {torrent} = await app.loadTorrent({msg: mainURL.hostname}, mainURL.pathname, {torrent: true})
+              const obj = {}
+              obj.events = new EventIterator(({ push, fail, stop }) => {
+                obj.push = push
+                obj.fail = fail
+                obj.stop = stop
+                function handle () {
+                    torrent.off('msg', push)
+                    torrent.off('over', handle)
+                    current.delete(mainURL.hostname)
+                    stop()
+                }
+                torrent.on('msg', push)
+                torrent.on('over', handle)
+                obj.func = () => {
+                  torrent.off('msg', push)
+                  torrent.off('over', handle)
+                }
+                return () => {
+                    torrent.off('msg', push)
+                    torrent.off('over', handle)
+                    current.delete(mainURL.hostname)
+                    stop()
+                }
+              })
+              current.set(mainURL.hostname, obj)
+              return new Response(obj.events, {status: 200})
             }
         } else if(method === 'POST'){
           if(app.checkId.has(mainURL.hostname)){
@@ -96,16 +92,46 @@ export default async function makeMsgFetch (opts = {}) {
             }
             return new Response(null, {status: 200})
           } else {
-            throw new Error('no torrent')
+            const {torrent} = await app.loadTorrent({msg: mainURL.hostname}, mainURL.pathname, {torrent: true})
+            const obj = {}
+            obj.events = new EventIterator(({ push, fail, stop }) => {
+              obj.push = push
+              obj.fail = fail
+              obj.stop = stop
+              function handle () {
+                  torrent.off('msg', push)
+                  torrent.off('over', handle)
+                  current.delete(mainURL.hostname)
+                  stop()
+              }
+              torrent.on('msg', push)
+              torrent.on('over', handle)
+              obj.func = () => {
+                torrent.off('msg', push)
+                torrent.off('over', handle)
+              }
+              return () => {
+                  torrent.off('msg', push)
+                  torrent.off('over', handle)
+                  current.delete(mainURL.hostname)
+                  stop()
+              }
+            })
+            current.set(mainURL.hostname, obj)
+            if(torrent.say){
+              torrent.say(body)
+            }
+            return new Response(null, {status: 200})
           }
         } else if(method === 'DELETE'){
           if(current.has(mainURL.hostname)){
             const test = current.get(mainURL.hostname)
             test.stop()
             current.delete(mainURL.hostname)
-            return new Response(null, {status: 200})
+            return new Response(mainURL.hostname, {status: 200})
           } else {
-            return new Response(null, {status: 400})
+            const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
+            return new Response(test.id, {status: 400})
           }
         } else {
             return new Response('invalid method', {status: 400, headers: mainHeaders})
