@@ -110,14 +110,8 @@ export default async function makeBTFetch (opts = {}) {
           throw new Error('host type is invalid')
         }
       } else {
-        if(checkAddress.test(mainHost)){
-          mainId.address = mainHost
-          mainId.secret = extra
-        } else if(checkHash.test(mainHost)){
-          mainId.infohash = mainHost
-        } else {
-          throw new Error('identifier is invalid')
-        }
+        mainId.id = mainHost
+        mainId.extra = extra
       }
       
       const mainPath = decodeURIComponent(pathname)
@@ -135,7 +129,7 @@ export default async function makeBTFetch (opts = {}) {
         const method = session.method
         const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : 0 : btTimeout
         const mid = formatReq(decodeURIComponent(mainURL.hostname), decodeURIComponent(mainURL.pathname), reqHeaders.get('x-authentication'))
-        const isItBlock = block && !mid.mainQuery && blockList.includes(mid.mainId.address || mid.mainId.infohash)
+        const isItBlock = block && !mid.mainQuery && blockList.includes(mid.mainId.id)
 
         if(method === 'HEAD'){
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
@@ -143,23 +137,23 @@ export default async function makeBTFetch (opts = {}) {
           
           if(reqHeaders.has('x-block') || searchParams.has('x-block')){
             if(JSON.parse(reqHeaders.get('x-block') || searchParams.get('x-block'))){
-              if(blockList.includes(mid.mainId.address || mid.mainId.infohash)){
+              if(blockList.includes(mid.mainId.id)){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
-                const torrentData = await app.shredTorrent(mid.mainId, '/', {})
-                const useIden = torrentData.address || torrentData.infohash || torrentData.id
+                const torrentData = await app.shredTorrent(mid.mainId.id, '/', {})
+                const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
                 const useLink = `bt://${useIden}/`
 
-                blockList.push(mid.mainId.address || mid.mainId.infohash)
+                blockList.push(mid.mainId.id)
                 await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify(blockList))
 
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now blocking', 'X-Link': useLink}})
               }
             } else {
-              if(!blockList.includes(mid.mainId.address || mid.mainId.infohash)){
+              if(!blockList.includes(mid.mainId.id)){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already unblocked'}})
               } else {
-                blockList.splice(blockList.indexOf(mid.mainId.address || mid.mainId.infohash), 1)
+                blockList.splice(blockList.indexOf(mid.mainId.id), 1)
                 await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify(blockList))
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
@@ -168,7 +162,7 @@ export default async function makeBTFetch (opts = {}) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
             }
-            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
+            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId.id, mid.mainPath, useOpts))
             if(useData){
               if(useData.createReadStream){
                 const useHeaders = {}
@@ -205,7 +199,7 @@ export default async function makeBTFetch (opts = {}) {
         
             const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
             const useOpts = { ...useOpt, timeout: reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : undefined : btTimeout }
-            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId, mid.mainPath, useOpts))
+            const useData = await waitForStuff({num: mainTimeout, msg: 'timed out'}, app.loadTorrent(mid.mainId.id, mid.mainPath, useOpts))
             if(useData){
               if(useData.createReadStream){
                 const mainRange = reqHeaders.has('Range') || reqHeaders.has('range')
@@ -245,9 +239,9 @@ export default async function makeBTFetch (opts = {}) {
         
             if (mid.mainQuery) {
               if (mid.mainType) {
-                mid.mainId = { address: null, secret: null }
+                mid.mainId = { id: true, extra: null }
               } else {
-                mid.mainId = { infohash: null }
+                mid.mainId = { id: false }
               }
             }
         
@@ -255,16 +249,17 @@ export default async function makeBTFetch (opts = {}) {
               const useOpts = {
                   ...useOpt,
                   seq: reqHeaders.has('x-version') || searchParams.has('x-version') ? Number(reqHeaders.get('x-version') || searchParams.get('x-version')) : null,
+                  extra: mid.mainId.extra
                 }
               const useBody = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? handleFormData(await session.formData()) : body
-              const torrentData = await app.publishTorrent(mid.mainId, mid.mainPath, useBody, useOpts)
+              const torrentData = await app.publishTorrent(mid.mainId.id, mid.mainPath, useBody, useOpts)
               const useHeaders = {}
               for (const test of ['sequence', 'name', 'infohash', 'dir', 'seed', 'secret', 'address']) {
                 if (torrentData[test] || typeof(torrentData[test]) === 'number') {
                   useHeaders['X-' + test.charAt(0).toUpperCase() + test.slice(1)] = torrentData[test]
                 }
               }
-              const useIden = torrentData.address || torrentData.infohash
+              const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
               useHeaders['X-Link'] = `bt://${useIden}${torrentData.path}`
               useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
               return new Response(mainReq ? `<html><head><title>${useIden}</title></head><body><div>${Array.isArray(torrentData.saved) ? JSON.stringify(torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')})) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')}</div></body></html>` : JSON.stringify(Array.isArray(torrentData.saved) ? torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')}) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')), { status: 200, headers: { ...mainHeaders, 'Content-Length': String(torrentData.length), 'Content-Type': mainRes, ...useHeaders } })
@@ -280,14 +275,14 @@ export default async function makeBTFetch (opts = {}) {
                   ...useOpt,
                   count: reqHeaders.has('x-version') || searchParams.has('x-version') ? Number(reqHeaders.get('x-version') || searchParams.get('x-version')) : null
               }
-              const torrentData = await app.shredTorrent(mid.mainId, mid.mainPath, useOpts)
+              const torrentData = await app.shredTorrent(mid.mainId.id, mid.mainPath, useOpts)
               const useHead = {}
               for (const test of ['id', 'path', 'infohash', 'dir', 'name', 'sequence', 'seed', 'address', 'secret']) {
                 if (torrentData[test]) {
                   useHead['X-' + test.charAt(0).toUpperCase() + test.slice(1)] = torrentData[test]
                 }
               }
-              const useIden = torrentData.address || torrentData.infohash || torrentData.id
+              const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
               const useLink = `bt://${torrentData.id}${torrentData.path}`
               useHead['X-Link'] = `bt://${useIden}${torrentData.path}`
               useHead['Link'] = `<${useHead['X-Link']}>; rel="canonical"`

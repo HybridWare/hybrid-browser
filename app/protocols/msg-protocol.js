@@ -29,7 +29,7 @@ export default async function makeMsgFetch (opts = {}) {
       await fse.ensureDir(dir)
     }
   
-    const app = await (async () => {if(finalOpts.torrentz){return finalOpts.torrentz}else{const {default: torrentzFunc} = await import('torrentz');const Torrentz = await torrentzFunc();return new Torrentz(finalOpts);}})()
+    const app = await (async () => {if(finalOpts.torrentz){return finalOpts.torrentz}else{const Torrentz = await import('torrentz');return new Torrentz(finalOpts);}})()
     if(!await fse.pathExists(path.join(dir, 'block.txt'))){
       await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify([]))
     }
@@ -56,7 +56,7 @@ export default async function makeMsgFetch (opts = {}) {
               const obj = current.get(mainURL.hostname)
               return new Response(obj.events, {status: 200})
             } else {
-              const {torrent} = await app.loadTorrent({msg: mainURL.hostname}, mainURL.pathname, {torrent: true})
+              const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
               const obj = {}
               obj.events = new EventIterator(({ push, fail, stop }) => {
                 obj.push = push
@@ -92,7 +92,7 @@ export default async function makeMsgFetch (opts = {}) {
             }
             return new Response(null, {status: 200})
           } else {
-            const {torrent} = await app.loadTorrent({msg: mainURL.hostname}, mainURL.pathname, {torrent: true})
+            const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
             const obj = {}
             obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
