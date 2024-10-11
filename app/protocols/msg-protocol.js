@@ -45,9 +45,6 @@ export default async function makeMsgFetch (opts = {}) {
         if(!mainURL.hostname){
             throw new Error('must have hostname')
         }
-        if(!app.checkId.has(mainURL.hostname)){
-            throw new Error('torrent is not ready')
-        }
         if(block && blockList.includes(mainURL.hostname)){
             throw new Error('id is blocked')
         }
