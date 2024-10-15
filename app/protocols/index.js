@@ -1,6 +1,5 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
-import Relay from '../relay.js'
 
 const P2P_PRIVILEGES = {
   standard: true,
@@ -271,10 +270,4 @@ export async function setupProtocols (session) {
 
   console.log('registered lokinet protocol')
   // loki
-
-  if(extra.relay){
-    const relay = new Relay(torrentz, helia, sdk)
-    relay.start(extra.port)
-    onCloseHandlers.push(async () => {return await relay.close(false)})
-  }
 }

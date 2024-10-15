@@ -101,10 +101,5 @@ export default RC('hybrid', {
 
   lok: {
     status: true
-  },
-
-  extra: {
-    relay: true,
-    port: 3000
   }
 })

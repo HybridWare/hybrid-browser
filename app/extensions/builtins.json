@@ -7,14 +7,6 @@
     "version": "1.1.1",
     "url": "https://github.com/HybridWare/extension-hybrid-renderer/releases/download/v{version}/v{version}.zip"
   },
-  "hybrid-qr-share": {
-    "version": "1.1.1",
-    "url": "https://github.com/HybridWare/extension-hybrid-qr-share/releases/download/v{version}/v{version}.zip"
-  },
-  "archiveweb.page": {
-    "version": "0.10.0",
-    "url": "https://github.com/webrecorder/archiveweb.page/releases/download/v{version}/ArchiveWeb.page-{version}-extension.zip"
-  },
   "ublock": {
     "version": "1.47.4",
     "url": "https://github.com/gorhill/uBlock/releases/download/{version}/uBlock0_{version}.chromium.zip",

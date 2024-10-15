@@ -2,7 +2,7 @@
   "name": "hybrid-browser",
   "version": "3.0.0",
   "description": "A peer to peer browser",
-  "main": "app/main.js",
+  "main": "app/index.js",
   "type": "module",
   "scripts": {
     "test": "npm run lint",

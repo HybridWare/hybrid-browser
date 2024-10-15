@@ -102,6 +102,9 @@ function init () {
   })
 }
 
+// register privileged schemes
+protocols.registerPrivileges()
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -125,6 +128,7 @@ app.on('before-quit', () => {
 })
 
 app.on('window-all-closed', () => {})
+
 async function onready () {
   console.log('Building tray and context menu')
   const appIcon = new Tray(LOGO_FILE)
@@ -157,6 +161,8 @@ async function onready () {
   })
 
   console.log('Setting up protocol handlers')
+
+  await protocols.checkProtocols()
 
   await protocols.setupProtocols(webSession)
 
