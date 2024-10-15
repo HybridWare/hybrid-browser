@@ -127,15 +127,15 @@ export default async function makeTopicFetch (opts = {}) {
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
               app.swarm.leave(buf).then(console.log).catch(console.error)
-              const testing = current.get(hostname)
-              if(testing.ids){
+              if(current.has(hostname)){
+                const testing = current.get(hostname)
                 testing.ids.forEach((e) => {
                   if(app.connections.has(e)){
                       app.connections.get(e).destroy()
                   }
                 })
+                testing.ids.clear()
               }
-              testing.ids.clear()
               current.delete(hostname)
               stop()
           }
