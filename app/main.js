@@ -1,6 +1,10 @@
-const { protocol } = require('electron')
-const path = require('path')
-const { pathToFileURL } = require('url')
+// const { protocol } = require('electron')
+// const path = require('path')
+// const { pathToFileURL } = require('url')
+
+import { protocol } from 'electron'
+import path from 'path'
+import { pathToFileURL } from 'url'
 
 const P2P_PRIVILEGES = {
   standard: true,
@@ -63,10 +67,11 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'topic', privileges: P2P_PRIVILEGES }
 ])
 
-const indexFile = path.join(__dirname, 'index.js')
-  .replace(`.asar${path.sep}`, `.asar.unpacked${path.sep}`)
+// const indexFile = path.join(__dirname, 'index.js').replace(`.asar${path.sep}`, `.asar.unpacked${path.sep}`)
+const indexFile = path.join(import.meta.dirname, 'index.js').replace(`.asar${path.sep}`, `.asar.unpacked${path.sep}`)
 
 import(pathToFileURL(indexFile)).catch((e) => {
   console.error(e.stack)
   process.exit(1)
 })
+
