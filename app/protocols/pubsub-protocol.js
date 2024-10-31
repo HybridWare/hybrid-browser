@@ -94,8 +94,12 @@ export default async function makePubsubFetch (opts = {}) {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
       } catch (error) {
-        console.error(error)
-        return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
+        if(error.message === 'PublishError.NoPeersSubscribedToTopic'){
+          return new Response(null, {status: 200})
+        } else {
+          console.error(error)
+          return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
+        }
       }
     }
   
