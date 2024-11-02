@@ -84,9 +84,7 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'POST'){
           if(app.checkId.has(mainURL.hostname)){
             const torrent = app.checkId.get(mainURL.hostname)
-            if(torrent.say){
-              torrent.say(body)
-            }
+            torrent.say(body)
             return new Response(null, {status: 200})
           } else {
             const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
@@ -115,9 +113,7 @@ export default async function makeMsgFetch (opts = {}) {
               }
             })
             current.set(mainURL.hostname, obj)
-            if(torrent.say){
-              torrent.say(body)
-            }
+            torrent.say(body)
             return new Response(null, {status: 200})
           }
         } else if(method === 'DELETE'){
