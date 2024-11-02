@@ -90,7 +90,7 @@ export default async function makeHyperFetch (opts = {}) {
   
     async function saveFileData(drive, title, main, body, useOpt) {
       await pipelinePromise(Readable.from(body), drive.createWriteStream(main.usePath, useOpt))
-      return 'hyper://' + path.join(title, main.usePath, info.webkitRelativePath || info.name).replace(/\\/g, "/")
+      return 'hyper://' + path.join(title, main.usePath).replace(/\\/g, "/")
     }
   
     async function saveFormData(drive, title, mid, data, useOpts) {
