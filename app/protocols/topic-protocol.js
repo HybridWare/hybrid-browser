@@ -40,22 +40,22 @@ export default async function makeTopicFetch (opts = {}) {
     function handle(socket, relay){
       relay.topics.forEach((topic) => {
         const bufToStr = topic.toString()
-          if(current.has(bufToStr)){
-              const test = current.get(bufToStr)
-              if(test.complete){
-                return
-              }
-              function handler(){
-                  socket.off('data', test.push)
-                  socket.off('error', test.fail)
-                  socket.off('close', handler)
-              }
-              socket.on('data', test.push)
-              socket.on('error', test.fail)
-              socket.on('close', handler)
-              test.ids.add(socket.publicKey)
-              test.complete = true
-          }
+        if(current.has(bufToStr)){
+            const test = current.get(bufToStr)
+            if(test.complete){
+              return
+            }
+            function handler(){
+                socket.off('data', test.push)
+                socket.off('error', test.fail)
+                socket.off('close', handler)
+            }
+            socket.on('data', test.push)
+            socket.on('error', test.fail)
+            socket.on('close', handler)
+            test.ids.add(socket.publicKey)
+            test.complete = true
+        }
       })
     }
 
