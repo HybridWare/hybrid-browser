@@ -76,16 +76,18 @@ export default async function makeTopicFetch (opts = {}) {
         }
 
       if(method === 'GET'){
-        if(current.has(mainURL.hostname)){
-          const test = current.get(mainURL.hostname)
+        const buf = Buffer.alloc(32).fill(mainURL.hostname)
+        if(current.has(buf.toString())){
+          const test = current.get(buf.toString())
           return new Response(test.events, {status: 200})
         } else {
-          const test = iter(mainURL.hostname)
+          const test = iter(buf.toString(), buf)
           return new Response(test.events, {status: 200})
         }
       } else if(method === 'POST'){
-        if(current.has(mainURL.hostname)){
-          const test = current.get(mainURL.hostname)
+        const buf = Buffer.alloc(32).fill(mainURL.hostname)
+        if(current.has(buf.toString())){
+          const test = current.get(buf.toString())
           test.ids.forEach((i) => {
             if(app.connections.has(i)){
               app.connections.get(i).write(body)
@@ -93,7 +95,7 @@ export default async function makeTopicFetch (opts = {}) {
           })
           return new Response(null, {status: 200})
         } else {
-            const test = iter(mainURL.hostname)
+            const test = iter(buf.toString(), buf)
             test.ids.forEach((i) => {
               if(app.connections.has(i)){
                 app.connections.get(i).write(body)
@@ -102,13 +104,14 @@ export default async function makeTopicFetch (opts = {}) {
             return new Response(test.events, {status: 200})
         }
       } else if(method === 'DELETE'){
-        if(current.has(mainURL.hostname)){
-          const test = current.get(mainURL.hostname)
+        const buf = Buffer.alloc(32).fill(mainURL.hostname)
+        if(current.has(buf.toString())){
+          const test = current.get(buf.toString())
           test.stop()
-          current.delete(mainURL.hostname)
-          return new Response(mainURL.hostname, {status: 200})
+          current.delete(buf.toString())
+          return new Response(buf.toString(), {status: 200})
         } else {
-          return new Response(mainURL.hostname, {status: 400})
+          return new Response(buf.toString(), {status: 400})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
@@ -119,20 +122,20 @@ export default async function makeTopicFetch (opts = {}) {
       }
     }
 
-    function iter(hostname){
-      const buf = Buffer.concat([Buffer.from(hostname)], 32)
-      const obj = {ids: new Set()}
+    function iter(hostname, bufOFStr){
+      const obj = {}
       current.set(hostname, obj)
+      obj.ids = new Set()
       obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
           obj.fail = fail
           obj.stop = stop
           // obj.status = false
           // const disc = app.swarm.join(mainURL.hostname, {})
-          app.swarm.join(buf, {})
+          app.swarm.join(bufOFStr, {})
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
-              app.swarm.leave(buf).then(console.log).catch(console.error)
+              app.swarm.leave(bufOFStr).then(console.log).catch(console.error)
               if(current.has(hostname)){
                 const testing = current.get(hostname)
                 testing.ids.forEach((e) => {
@@ -145,8 +148,8 @@ export default async function makeTopicFetch (opts = {}) {
               current.delete(hostname)
               stop()
           }
-        })
-        return obj
+      })
+      return obj
     }
   
     async function close(){

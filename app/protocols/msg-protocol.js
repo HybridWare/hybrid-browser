@@ -55,6 +55,7 @@ export default async function makeMsgFetch (opts = {}) {
             } else {
               const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
               const obj = {}
+              current.set(mainURL.hostname, obj)
               obj.events = new EventIterator(({ push, fail, stop }) => {
                 obj.push = push
                 obj.fail = fail
@@ -78,7 +79,6 @@ export default async function makeMsgFetch (opts = {}) {
                     stop()
                 }
               })
-              current.set(mainURL.hostname, obj)
               return new Response(obj.events, {status: 200})
             }
         } else if(method === 'POST'){
@@ -89,6 +89,7 @@ export default async function makeMsgFetch (opts = {}) {
           } else {
             const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
             const obj = {}
+            current.set(mainURL.hostname, obj)
             obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
@@ -112,7 +113,6 @@ export default async function makeMsgFetch (opts = {}) {
                   stop()
               }
             })
-            current.set(mainURL.hostname, obj)
             torrent.say(body)
             return new Response(null, {status: 200})
           }

@@ -64,6 +64,7 @@ export default async function makePubsubFetch (opts = {}) {
           return new Response(test.events, {status: 200})
         } else {
           const obj = {}
+          current.set(mainURL.hostname, obj)
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
@@ -75,7 +76,6 @@ export default async function makePubsubFetch (opts = {}) {
                   stop()
               }
             })
-            current.set(mainURL.hostname, obj)
             return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
