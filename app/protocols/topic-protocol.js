@@ -39,8 +39,9 @@ export default async function makeTopicFetch (opts = {}) {
 
     function handle(socket, relay){
       relay.topics.forEach((topic) => {
-          if(current.has(topic)){
-              const test = current.get(topic.toString())
+        const bufToStr = topic.toString()
+          if(current.has(bufToStr)){
+              const test = current.get(bufToStr)
               if(test.complete){
                 return
               }
@@ -121,6 +122,7 @@ export default async function makeTopicFetch (opts = {}) {
     function iter(hostname){
       const buf = Buffer.concat([Buffer.from(hostname)], 32)
       const obj = {ids: new Set()}
+      current.set(hostname, obj)
       obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
           obj.fail = fail
@@ -144,7 +146,6 @@ export default async function makeTopicFetch (opts = {}) {
               stop()
           }
         })
-        current.set(hostname, obj)
         return obj
     }
   
