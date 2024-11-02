@@ -77,17 +77,19 @@ export default async function makeTopicFetch (opts = {}) {
 
       if(method === 'GET'){
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
-        if(current.has(buf.toString())){
-          const test = current.get(buf.toString())
+        const str = buf.toString()
+        if(current.has(str)){
+          const test = current.get(str)
           return new Response(test.events, {status: 200})
         } else {
-          const test = iter(buf.toString(), buf)
+          const test = iter(str, buf)
           return new Response(test.events, {status: 200})
         }
       } else if(method === 'POST'){
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
-        if(current.has(buf.toString())){
-          const test = current.get(buf.toString())
+        const str = buf.toString()
+        if(current.has(str)){
+          const test = current.get(str)
           test.ids.forEach((i) => {
             if(app.connections.has(i)){
               app.connections.get(i).write(body)
@@ -95,7 +97,7 @@ export default async function makeTopicFetch (opts = {}) {
           })
           return new Response(null, {status: 200})
         } else {
-            const test = iter(buf.toString(), buf)
+            const test = iter(str, buf)
             test.ids.forEach((i) => {
               if(app.connections.has(i)){
                 app.connections.get(i).write(body)
@@ -105,13 +107,14 @@ export default async function makeTopicFetch (opts = {}) {
         }
       } else if(method === 'DELETE'){
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
-        if(current.has(buf.toString())){
-          const test = current.get(buf.toString())
+        const str = buf.toString()
+        if(current.has(str)){
+          const test = current.get(str)
           test.stop()
-          current.delete(buf.toString())
-          return new Response(buf.toString(), {status: 200})
+          current.delete(str)
+          return new Response(str, {status: 200})
         } else {
-          return new Response(buf.toString(), {status: 400})
+          return new Response(str, {status: 400})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
