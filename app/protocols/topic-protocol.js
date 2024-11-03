@@ -91,13 +91,13 @@ export default async function makeTopicFetch (opts = {}) {
         if(current.has(str)){
           const test = current.get(str)
           for(const prop in test.ids){
-            test.ids[prop].write(body)
+            test.ids[prop].write(Buffer.isBuffer(body) ? body : Buffer.from(body))
           }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
             for(const prop in test.ids){
-              test.ids[prop].write(body)
+              test.ids[prop].write(Buffer.isBuffer(body) ? body : Buffer.from(body))
             }
             return new Response(test.events, {status: 200})
         }
