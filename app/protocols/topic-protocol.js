@@ -42,7 +42,7 @@ export default async function makeTopicFetch (opts = {}) {
         const bufToStr = topic.toString()
         if(current.has(bufToStr)){
             const test = current.get(bufToStr)
-            if(test.complete){
+            if(test.ids[socket.publicKey.toString('hex')]){
               return
             }
             function handler(){
@@ -53,8 +53,7 @@ export default async function makeTopicFetch (opts = {}) {
             socket.on('data', test.push)
             socket.on('error', test.fail)
             socket.on('close', handler)
-            test.ids.add(socket.publicKey)
-            test.complete = true
+            test.ids[socket.publicKey.toString('hex')] = socket
         }
       })
     }
@@ -90,19 +89,15 @@ export default async function makeTopicFetch (opts = {}) {
         const str = buf.toString()
         if(current.has(str)){
           const test = current.get(str)
-          test.ids.forEach((i) => {
-            if(app.connections.has(i)){
-              app.connections.get(i).write(body)
-            }
-          })
+          for(const prop in test.ids){
+            test.ids[prop].write(body)
+          }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
-            test.ids.forEach((i) => {
-              if(app.connections.has(i)){
-                app.connections.get(i).write(body)
-              }
-            })
+            for(const prop in test.ids){
+              test.ids[prop].write(body)
+            }
             return new Response(test.events, {status: 200})
         }
       } else if(method === 'DELETE'){
@@ -128,7 +123,7 @@ export default async function makeTopicFetch (opts = {}) {
     function iter(hostname, bufOFStr){
       const obj = {}
       current.set(hostname, obj)
-      obj.ids = new Set()
+      obj.ids = {}
       obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
           obj.fail = fail
@@ -141,12 +136,13 @@ export default async function makeTopicFetch (opts = {}) {
               app.swarm.leave(bufOFStr).then(console.log).catch(console.error)
               if(current.has(hostname)){
                 const testing = current.get(hostname)
-                testing.ids.forEach((e) => {
-                  if(app.connections.has(e)){
-                      app.connections.get(e).destroy()
-                  }
-                })
-                testing.ids.clear()
+                for(const prop in testing.ids){
+                  test.ids[prop].destroy()
+                  delete testing.ids[prop]
+                }
+                // for(const prop of testing.ids){
+                //   delete testing.ids[prop]
+                // }
               }
               current.delete(hostname)
               stop()
@@ -157,14 +153,13 @@ export default async function makeTopicFetch (opts = {}) {
   
     async function close(){
         app.swarm.off('connection', handle)
-        current.forEach((e) => {
-          e.ids.forEach((i) => {
-            if(app.connections.has(i)){
-              app.connections.get(i).destroy()
-            }
-          })
-          e.stop()
-        })
+        for(const cur of current.values()){
+          for(const prop of cur.ids){
+            cur.ids[prop].destroy()
+            delete cur.ids[prop]
+          }
+          cur.stop()
+        }
         current.clear()
         return
     }
