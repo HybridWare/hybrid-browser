@@ -155,7 +155,7 @@ export default async function makeTopicFetch (opts = {}) {
     async function close(){
         app.swarm.off('connection', handle)
         for(const cur of current.values()){
-          for(const prop of cur.ids){
+          for(const prop in cur.ids){
             cur.ids[prop].destroy()
             delete cur.ids[prop]
           }
