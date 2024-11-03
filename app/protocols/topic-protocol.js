@@ -139,7 +139,7 @@ export default async function makeTopicFetch (opts = {}) {
               if(current.has(hostname)){
                 const testing = current.get(hostname)
                 for(const prop in testing.ids){
-                  test.ids[prop].destroy()
+                  testing.ids[prop].destroy()
                   delete testing.ids[prop]
                 }
                 // for(const prop of testing.ids){
