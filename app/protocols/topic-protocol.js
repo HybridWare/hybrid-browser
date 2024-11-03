@@ -91,13 +91,13 @@ export default async function makeTopicFetch (opts = {}) {
         if(current.has(str)){
           const test = current.get(str)
           for(const prop in test.ids){
-            test.ids[prop].write(Buffer.isBuffer(body) ? body : Buffer.from(body))
+            test.ids[prop].write(await toBuff(body))
           }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
             for(const prop in test.ids){
-              test.ids[prop].write(Buffer.isBuffer(body) ? body : Buffer.from(body))
+              test.ids[prop].write(await toBuff(body))
             }
             return new Response(test.events, {status: 200})
         }
@@ -163,6 +163,24 @@ export default async function makeTopicFetch (opts = {}) {
         }
         current.clear()
         return
+    }
+
+    async function toBuff(data){
+      try {
+        const chunks = []
+        for await (let chunk of data) {
+          chunks.push(chunk)
+        }
+        return Buffer.concat(chunks)
+      } catch {
+        if(Buffer.isBuffer(data)){
+          return data
+        } else if(typeof(data) === 'string'){
+          return Buffer.from(data)
+        } else {
+          return null
+        }
+      }
     }
 
     function intoStream (data) {
