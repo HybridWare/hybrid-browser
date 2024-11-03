@@ -38,7 +38,7 @@ export default async function makeTopicFetch (opts = {}) {
     const current = new Map()
 
     function handle(socket, relay){
-      relay.topics.forEach((topic) => {
+      for(const topic of relay.topics){
         const bufToStr = topic.toString()
         if(current.has(bufToStr)){
             const test = current.get(bufToStr)
@@ -53,9 +53,10 @@ export default async function makeTopicFetch (opts = {}) {
             socket.on('data', test.push)
             socket.on('error', test.fail)
             socket.on('close', handler)
+            console.log(socket.publicKey.toString('hex'), socket.publicKey)
             test.ids[socket.publicKey.toString('hex')] = socket
         }
-      })
+      }
     }
 
     app.swarm.on('connection', handle)
