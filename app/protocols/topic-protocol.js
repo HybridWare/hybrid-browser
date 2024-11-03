@@ -49,6 +49,7 @@ export default async function makeTopicFetch (opts = {}) {
                 socket.off('data', test.push)
                 socket.off('error', test.fail)
                 socket.off('close', handler)
+                delete test.ids[socket.publicKey.toString('hex')]
             }
             socket.on('data', test.push)
             socket.on('error', test.fail)
