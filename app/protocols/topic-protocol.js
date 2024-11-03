@@ -41,6 +41,11 @@ export default async function makeTopicFetch (opts = {}) {
       for(const topic of relay.topics){
         const bufToStr = topic.toString()
         if(current.has(bufToStr)){
+          if(socket.amount){
+            socket.amount = socket.amount + 1
+          } else {
+            socket.amount = 1
+          }
             const test = current.get(bufToStr)
             if(test.ids[socket.publicKey.toString('hex')]){
               return
@@ -55,7 +60,8 @@ export default async function makeTopicFetch (opts = {}) {
             socket.on('error', test.fail)
             socket.on('close', handler)
             console.log(socket.publicKey.toString('hex'), socket.publicKey)
-            test.ids[socket.publicKey.toString('hex')] = socket
+            // test.ids[socket.publicKey.toString('hex')] = socket
+            test.ids[socket.publicKey.toString('hex')] = socket.publicKey
         }
       }
     }
@@ -92,13 +98,19 @@ export default async function makeTopicFetch (opts = {}) {
         if(current.has(str)){
           const test = current.get(str)
           for(const prop in test.ids){
-            test.ids[prop].write(await toBuff(body))
+            // test.ids[prop].write(await toBuff(body))
+            if(app.swarm.connections.has(test.ids[prop])){
+              app.swarm.connections.get(test.ids[prop]).write(await toBuff(body))
+            }
           }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
             for(const prop in test.ids){
-              test.ids[prop].write(await toBuff(body))
+            // test.ids[prop].write(await toBuff(body))
+            if(app.swarm.connections.has(test.ids[prop])){
+              app.swarm.connections.get(test.ids[prop]).write(await toBuff(body))
+            }
             }
             return new Response(test.events, {status: 200})
         }
@@ -139,7 +151,13 @@ export default async function makeTopicFetch (opts = {}) {
               if(current.has(hostname)){
                 const testing = current.get(hostname)
                 for(const prop in testing.ids){
-                  testing.ids[prop].destroy()
+                  if(app.swarm.connections.has(testing.ids[prop])){
+                    const soc = app.swarm.connections.get(testing.ids[prop])
+                    soc.amount = soc.amount - 1
+                    if(!soc.amount){
+                      soc.destroy()
+                    }
+                  }
                   delete testing.ids[prop]
                 }
                 // for(const prop of testing.ids){
@@ -157,7 +175,14 @@ export default async function makeTopicFetch (opts = {}) {
         app.swarm.off('connection', handle)
         for(const cur of current.values()){
           for(const prop in cur.ids){
-            cur.ids[prop].destroy()
+            if(app.swarm.connections.has(cur.ids[prop])){
+              const soc = app.swarm.connections.get(cur.ids[prop])
+              // soc.amount = soc.amount - 1
+              // if(!soc.amount){
+              //   soc.destroy()
+              // }
+              soc.destroy()
+            }
             delete cur.ids[prop]
           }
           cur.stop()
