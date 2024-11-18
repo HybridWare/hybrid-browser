@@ -85,7 +85,7 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'POST'){
           if(current.has(mainURL.hostname)){
             const obj = current.get(mainURL.hostname)
-            obj.torrent.say(body)
+            obj.torrent.say(await fullBody(body))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           } else {
             const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
@@ -115,7 +115,7 @@ export default async function makeMsgFetch (opts = {}) {
                   stop()
               }
             })
-            obj.torrent.say(body)
+            obj.torrent.say(await fullBody(body))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           }
         } else if(method === 'DELETE'){
@@ -137,6 +137,14 @@ export default async function makeMsgFetch (opts = {}) {
         console.error(error)
         return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
       }
+    }
+
+    async function fullBody(body){
+      const arr = []
+      for await (const data of body){
+        arr.push(data)
+      }
+      return Buffer.concat(arr).toString()
     }
   
     async function close(){
