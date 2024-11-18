@@ -79,7 +79,7 @@ export default async function makePubsubFetch (opts = {}) {
             return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
-        await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(body))
+        await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
         return new Response(null, {status: 200})
       } else if(method === 'DELETE'){
         if(current.has(mainURL.hostname)){
@@ -101,6 +101,14 @@ export default async function makePubsubFetch (opts = {}) {
           return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
         }
       }
+    }
+
+    async function toStr(data){
+      const chunks = []
+      for await (let chunk of data) {
+        chunks.push(chunk)
+      }
+      return Buffer.concat(chunks).toString()
     }
   
     async function close(){

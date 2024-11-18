@@ -192,21 +192,11 @@ export default async function makeTopicFetch (opts = {}) {
     }
 
     async function toBuff(data){
-      try {
-        const chunks = []
-        for await (let chunk of data) {
-          chunks.push(chunk)
-        }
-        return Buffer.concat(chunks)
-      } catch {
-        if(Buffer.isBuffer(data)){
-          return data
-        } else if(typeof(data) === 'string'){
-          return Buffer.from(data)
-        } else {
-          return null
-        }
+      const chunks = []
+      for await (let chunk of data) {
+        chunks.push(chunk)
       }
+      return Buffer.concat(chunks)
     }
 
     function intoStream (data) {
