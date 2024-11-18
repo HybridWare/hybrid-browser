@@ -42,6 +42,7 @@ export default async function makeMsgFetch (opts = {}) {
         const mainURL = new URL(session.url)
         const body = session.body
         const method = session.method
+        const useHeaders = session.headers
         if(!mainURL.hostname){
             throw new Error('must have hostname')
         }
@@ -85,7 +86,7 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'POST'){
           if(current.has(mainURL.hostname)){
             const obj = current.get(mainURL.hostname)
-            obj.torrent.say(await toBody(body))
+            obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           } else {
             const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
@@ -115,7 +116,7 @@ export default async function makeMsgFetch (opts = {}) {
                   stop()
               }
             })
-            obj.torrent.say(await toBody(body))
+            obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           }
         } else if(method === 'DELETE'){
@@ -139,12 +140,12 @@ export default async function makeMsgFetch (opts = {}) {
       }
     }
 
-    async function toBody(body){
+    async function toBody(body, buf){
       const arr = []
       for await (const data of body){
         arr.push(data)
       }
-      return Buffer.concat(arr).toString()
+      return buf ? Buffer.concat(arr) : Buffer.concat(arr).toString()
     }
   
     async function close(){
