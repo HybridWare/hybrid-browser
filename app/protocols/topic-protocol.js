@@ -36,32 +36,39 @@ export default async function makeTopicFetch (opts = {}) {
     const blockList = block ? JSON.parse((await fs.readFile(path.join(storage, 'block.txt'))).toString('utf-8')) : null
 
     const current = new Map()
+    const connection = new Map()
 
     function handle(socket, relay){
       for(const topic of relay.topics){
         const bufToStr = topic.toString()
         if(current.has(bufToStr)){
-          if(socket.amount){
-            socket.amount = socket.amount + 1
-          } else {
-            socket.amount = 1
+          if(!socket.ids){
+            socket.ids = new Set()
           }
-            const test = current.get(bufToStr)
-            if(test.ids[socket.publicKey.toString('hex')]){
-              return
-            }
+          const pub = socket.publicKey.toString('hex')
+          if(!connection.has(pub)){
+            connection.set(pub, socket)
+          }
+          const test = current.get(bufToStr)
+          if(!test.ids.has(pub)){
+            test.ids.add(pub)
             function handler(){
-                socket.off('data', test.push)
-                socket.off('error', test.fail)
-                socket.off('close', handler)
-                delete test.ids[socket.publicKey.toString('hex')]
-            }
-            socket.on('data', test.push)
-            socket.on('error', test.fail)
-            socket.on('close', handler)
-            console.log(socket.publicKey.toString('hex'), socket.publicKey)
-            // test.ids[socket.publicKey.toString('hex')] = socket
-            test.ids[socket.publicKey.toString('hex')] = socket.publicKey
+              socket.off('data', test.push)
+              socket.off('error', test.fail)
+              socket.off('close', handler)
+              connection.delete(pub)
+              // for(const p of socket.ids.values()){
+              //   //
+              // }
+              // delete test.ids[socket.publicKey.toString('hex')]
+          }
+          socket.on('data', test.push)
+          socket.on('error', test.fail)
+          socket.on('close', handler)
+          }
+          if(!socket.ids.has(bufToStr)){
+            socket.ids.add(bufToStr)
+          }
         }
       }
     }
@@ -97,20 +104,18 @@ export default async function makeTopicFetch (opts = {}) {
         const str = buf.toString()
         if(current.has(str)){
           const test = current.get(str)
-          for(const prop in test.ids){
-            // test.ids[prop].write(await toBuff(body))
-            if(app.swarm.connections.has(test.ids[prop])){
-              app.swarm.connections.get(test.ids[prop]).write(await toBuff(body))
+          for(const prop in test.ids.values()){
+            if(connection.has(prop)){
+              connection.get(prop).write(await toBuff(body))
             }
           }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
-            for(const prop in test.ids){
-            // test.ids[prop].write(await toBuff(body))
-            if(app.swarm.connections.has(test.ids[prop])){
-              app.swarm.connections.get(test.ids[prop]).write(await toBuff(body))
-            }
+            for(const prop in test.ids.values()){
+              if(connection.has(prop)){
+                connection.get(prop).write(await toBuff(body))
+              }
             }
             return new Response(test.events, {status: 200})
         }
@@ -120,7 +125,7 @@ export default async function makeTopicFetch (opts = {}) {
         if(current.has(str)){
           const test = current.get(str)
           test.stop()
-          current.delete(str)
+          // current.delete(str)
           return new Response(str, {status: 200})
         } else {
           return new Response(str, {status: 400})
@@ -137,7 +142,7 @@ export default async function makeTopicFetch (opts = {}) {
     function iter(hostname, bufOFStr){
       const obj = {}
       current.set(hostname, obj)
-      obj.ids = {}
+      obj.ids = new Set()
       obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
           obj.fail = fail
@@ -150,22 +155,20 @@ export default async function makeTopicFetch (opts = {}) {
               app.swarm.leave(bufOFStr).then(console.log).catch(console.error)
               if(current.has(hostname)){
                 const testing = current.get(hostname)
-                for(const prop in testing.ids){
-                  if(app.swarm.connections.has(testing.ids[prop])){
-                    const soc = app.swarm.connections.get(testing.ids[prop])
-                    soc.amount = soc.amount - 1
-                    if(!soc.amount){
-                      soc.destroy()
+                for(const prop in testing.ids.values()){
+                  if(connection.has(prop)){
+                    const soc = connection.get(prop)
+                    if(soc.ids.has(hostname)){
+                      soc.ids.delete(hostname)
+                      if(!soc.ids.size){
+                        soc.destroy()
+                      }
                     }
                   }
-                  delete testing.ids[prop]
                 }
-                // for(const prop of testing.ids){
-                //   delete testing.ids[prop]
-                // }
               }
               current.delete(hostname)
-              stop()
+              // stop()
           }
       })
       return obj
@@ -174,20 +177,13 @@ export default async function makeTopicFetch (opts = {}) {
     async function close(){
         app.swarm.off('connection', handle)
         for(const cur of current.values()){
-          for(const prop in cur.ids){
-            if(app.swarm.connections.has(cur.ids[prop])){
-              const soc = app.swarm.connections.get(cur.ids[prop])
-              // soc.amount = soc.amount - 1
-              // if(!soc.amount){
-              //   soc.destroy()
-              // }
-              soc.destroy()
-            }
-            delete cur.ids[prop]
-          }
           cur.stop()
         }
+        for(const soc of connection.values()){
+          soc.destroy()
+        }
         current.clear()
+        connection.clear()
         return
     }
 
