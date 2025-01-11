@@ -1,6 +1,6 @@
 
 export const name = 'hybrid-browser'
-export const version = '3.0.0'
+export const version = '3.0.1'
 export const dependencies = {
   "@chainsafe/libp2p-gossipsub": "^13.2.0",
   "@derhuerst/gemini": "^2.0.0",
@@ -36,7 +36,7 @@ export const dependencies = {
   "semver": "^7.6.3",
   "socks-proxy-agent": "^8.0.2",
   "streamx": "^2.16.1",
-  "torrentz": "^16.0.9",
+  "torrentz": "^17.0.3",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
   "wrtc": "^0.4.7",
   "ws": "^8.18.0"
