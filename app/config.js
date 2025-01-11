@@ -57,21 +57,21 @@ export default RC('hybrid', {
 
   bt: {
     dir: DEFAULT_BT_DIR,
-    refresh: true,
+    refresh: false,
     status: true,
     block: true
   },
 
   ipfs: {
     repo: DEFAULT_IPFS_DIR,
-    refresh: true,
+    refresh: false,
     status: true,
     block: true
   },
   
   hyper: {
     storage: DEFAULT_HYPER_DIR,
-    refresh: true,
+    refresh: false,
     status: true,
     block: true
   },
