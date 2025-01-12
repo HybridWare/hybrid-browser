@@ -71,6 +71,7 @@ export default async function makeIPFSFetch (opts = {}) {
       for await (const item of iterable) {
         item.cid = item.cid.toV1().toString()
         item.link = 'ipfs://' + item.path
+        item.size = Number(item.size)
         result.push(item)
       }
       return result
@@ -162,14 +163,29 @@ export default async function makeIPFSFetch (opts = {}) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
             }
-            useOpts.path = usePath === '/' ? undefined : usePath
+            // useOpts.path = usePath === '/' ? undefined : usePath
             const mainData = await waitForStuff({num: useOpts.timeout, msg: 'add pin'}, fileSystem.stat(CID.parse(useHost), useOpts))
-            const useLink = `ipfs://${path.join(useHost, usePath).replace(/\\/g, "/")}`
-            const useHeaders = {'X-Canon': mainData.cid.toV1().toString(), 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${mainData.size}` }
-            if (type) {
-              useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
+            if(mainData.type === 'directory'){
+              if(usePath !== '/'){
+                return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'can not have a path on CIDs that are directories'}})
+              }
+              const getSize = (await dirIter(fileSystem.ls(mainData.cid, useOpts))).map((data) => {return data.size}).reduce((acc, prop) => {return acc + prop}, 0)
+              const strCID = mainData.cid.toV1().toString()
+              const useLink = `ipfs://${path.join(strCID, usePath).replace(/\\/g, "/")}`
+              const useHeaders = {'X-Canon': strCID, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${getSize}` }
+              return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders} })
+            } else {
+              if(usePath.lastIndexOf('/') !== 0){
+                return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'path must be the file name'}})
+              }
+              const strCID = mainData.cid.toV1().toString()
+              const useLink = `ipfs://${path.join(strCID, usePath).replace(/\\/g, "/")}`
+              const useHeaders = {'X-Canon': mainData.cid.toV1().toString(), 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${Number(mainData.fileSize)}` }
+              if (type) {
+                useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
+              }
+              return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders} })
             }
-            return new Response(null, { status: 200, headers: {...mainHeaders, ...useHeaders} })
           }
       } else if(method === 'GET'){
         if(isItBlock){
@@ -180,34 +196,62 @@ export default async function makeIPFSFetch (opts = {}) {
       
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
-
-          useOpts.path = usePath === '/' ? undefined : usePath
           const useCID = CID.parse(useHost)
           const mainData = await waitForStuff({num: useOpts.timeout, msg: 'get cid'}, fileSystem.stat(useCID, useOpts))
           const mainCid = mainData.cid.toV1().toString()
 
           if(mainData.type === 'directory'){
-            const plain = await dirIter(fileSystem.ls(useCID, useOpts))
-            const useLink = `ipfs://${path.join(useHost, usePath).replace(/\\/g, "/")}`
-            return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${plain.map((data) => {return `<p><a href="${data.link}">${data.name}</a> - ${data.type} - ${data.cid}</p>`})}</div></body></html>` : JSON.stringify(plain), {status: 200, headers: {...mainHeaders, 'X-Canon': mainCid, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${mainData.size}`}})
+            useOpts.path = usePath === '/' ? undefined : usePath
+            if(path.extname(usePath)){
+              const useLink = `ipfs://${path.join(mainCid, usePath).replace(/\\/g, "/")}`
+              const isRanged = reqHeaders.has('Range') || reqHeaders.has('range')
+              if (isRanged) {
+                const ranges = parseRange(Number(mainData.fileSize), reqHeaders.get('Range') || reqHeaders.get('range'))
+                if (ranges && ranges.length && ranges.type === 'bytes') {
+                  const [{ start, end }] = ranges
+                  const length = (end - start + 1)
+                  const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${length}`, 'Content-Range': `bytes ${start}-${end}/${Number(mainData.fileSize)}`}
+                  if(type){
+                    useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
+                  }
+                  return new Response(fileSystem.cat(useCID, { ...useOpts, offset: start, length }), {status: 206, headers: {...mainHeaders, ...useHeaders}})
+                } else {
+                  return new Response(mainReq ? '<html><head><title>range</title></head><body><div><p>malformed or unsatisfiable range</p></div></body></html>' : JSON.stringify('malformed or unsatisfiable range'), {status: 416, headers: {...mainHeaders, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Type': mainRes, 'Content-Length': `${Number(mainData.fileSize)}`}})
+                }
+              } else {
+                const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${Number(mainData.fileSize)}`}
+                if(type){
+                  useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
+                }
+                return new Response(fileSystem.cat(useCID, useOpts), {status: 200, headers: {...mainHeaders, ...useHeaders}})
+              }
+            } else {
+              const plain = await dirIter(fileSystem.ls(useCID, useOpts))
+              const getSize = plain.map((data) => {return data.size}).reduce((acc, prop) => {return acc + prop}, 0)
+              const useLink = `ipfs://${path.join(mainCid, usePath).replace(/\\/g, "/")}`
+              return new Response(mainReq ? `<html><head><title>${mainCid}</title></head><body><div>${plain.map((data) => {return `<p><a href="${data.link}">${data.name}</a> - ${data.type} - ${data.cid}</p>`})}</div></body></html>` : JSON.stringify(plain), {status: 200, headers: {...mainHeaders, 'X-Canon': mainCid, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${getSize}`}})
+            }
           } else {
-            const useLink = `ipfs://${path.join(useHost, usePath).replace(/\\/g, "/")}`
+            if(usePath.lastIndexOf('/') !== 0){
+              return new Response(mainReq ? `<html><head><title>${mainCid}</title></head><body><div><p>path must be a file name</p></div></body></html>` : JSON.stringify('path must be a file name'), {status: 400, headers: {...mainHeaders, 'Content-Type': mainRes, 'Content-Length': `${Number(mainData.fileSize)}`}})
+            }
+            const useLink = `ipfs://${path.join(mainCid, usePath).replace(/\\/g, "/")}`
             const isRanged = reqHeaders.has('Range') || reqHeaders.has('range')
             if (isRanged) {
               const ranges = parseRange(Number(mainData.fileSize), reqHeaders.get('Range') || reqHeaders.get('range'))
               if (ranges && ranges.length && ranges.type === 'bytes') {
                 const [{ start, end }] = ranges
                 const length = (end - start + 1)
-                const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${length}`, 'Content-Range': `bytes ${start}-${end}/${mainData.size}`}
+                const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${length}`, 'Content-Range': `bytes ${start}-${end}/${Number(mainData.fileSize)}`}
                 if(type){
                   useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
                 }
                 return new Response(fileSystem.cat(useCID, { ...useOpts, offset: start, length }), {status: 206, headers: {...mainHeaders, ...useHeaders}})
               } else {
-                return new Response(mainReq ? '<html><head><title>range</title></head><body><div><p>malformed or unsatisfiable range</p></div></body></html>' : JSON.stringify('malformed or unsatisfiable range'), {status: 416, headers: {...mainHeaders, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Type': mainRes, 'Content-Length': `${mainData.size}`}})
+                return new Response(mainReq ? '<html><head><title>range</title></head><body><div><p>malformed or unsatisfiable range</p></div></body></html>' : JSON.stringify('malformed or unsatisfiable range'), {status: 416, headers: {...mainHeaders, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Type': mainRes, 'Content-Length': `${Number(mainData.fileSize)}`}})
               }
             } else {
-              const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${mainData.size}`}
+              const useHeaders = {'X-Canon': mainCid, 'X-Link': `${useLink}`, 'Link': `<${useLink}>; rel="canonical"`, 'Content-Length': `${Number(mainData.fileSize)}`}
               if(type){
                 useHeaders['Content-Type'] = type.startsWith('text/') ? `${type}; charset=utf-8` : type
               }
