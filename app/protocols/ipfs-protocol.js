@@ -77,9 +77,9 @@ export default async function makeIPFSFetch (opts = {}) {
     }
   
     async function saveFormData(useQuery, useHost, usePath, data, useOpts) {
-      const useHostPath = useQuery ? usePath : path.join('/', useHost, usePath).replace(/\\/g, '/')
+      const useHostPath = useQuery ? usePath : path.join('/', useHost, usePath)
       let test
-      const src = data.map((datas) => {return {path: path.join(useHostPath, datas.webkitRelativePath || datas.name), content: Readable.from(datas.stream())}})
+      const src = data.map((datas) => {return {path: path.join(useHostPath, datas.webkitRelativePath || datas.name).replace(/\\/g, '/'), content: Readable.from(datas.stream())}})
       for await (const testing of fileSystem.addAll(src, useOpts)){
         test = testing.cid
       }
@@ -87,8 +87,8 @@ export default async function makeIPFSFetch (opts = {}) {
     }
   
     async function saveFileData(useQuery, useHost, usePath, data, useOpts) {
-      const useHostPath = useQuery ? usePath : path.join('/', useHost, usePath).replace(/\\/g, '/')
-      const src = [{path: useHostPath, content: Readable.from(data)}]
+      const useHostPath = useQuery ? usePath : path.join('/', useHost, usePath)
+      const src = [{path: useHostPath.replace(/\\/g, '/'), content: Readable.from(data)}]
       let test
       for await (const testing of fileSystem.addAll(src, useOpts)){
         test = testing.cid
