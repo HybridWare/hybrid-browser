@@ -63,22 +63,22 @@ export default async function makeMsgFetch (opts = {}) {
                 obj.fail = fail
                 obj.stop = stop
                 function handle () {
-                    torrent.off('msg', push)
-                    torrent.off('over', handle)
-                    current.delete(mainURL.hostname)
+                    // torrent.off('msg', push)
+                    // torrent.off('over', handle)
+                    // current.delete(mainURL.hostname)
                     stop()
                 }
                 torrent.on('msg', push)
                 torrent.on('over', handle)
-                obj.func = () => {
-                  torrent.off('msg', push)
-                  torrent.off('over', handle)
-                }
+                // obj.func = () => {
+                //   torrent.off('msg', push)
+                //   torrent.off('over', handle)
+                // }
                 return () => {
                     torrent.off('msg', push)
                     torrent.off('over', handle)
                     current.delete(mainURL.hostname)
-                    stop()
+                    // stop()
                 }
               })
               return new Response(obj.events, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
@@ -98,22 +98,22 @@ export default async function makeMsgFetch (opts = {}) {
               obj.fail = fail
               obj.stop = stop
               function handle () {
-                  torrent.off('msg', push)
-                  torrent.off('over', handle)
-                  current.delete(mainURL.hostname)
+                  // torrent.off('msg', push)
+                  // torrent.off('over', handle)
+                  // current.delete(mainURL.hostname)
                   stop()
               }
               torrent.on('msg', push)
               torrent.on('over', handle)
-              obj.func = () => {
-                torrent.off('msg', push)
-                torrent.off('over', handle)
-              }
+              // obj.func = () => {
+              //   torrent.off('msg', push)
+              //   torrent.off('over', handle)
+              // }
               return () => {
                   torrent.off('msg', push)
                   torrent.off('over', handle)
                   current.delete(mainURL.hostname)
-                  stop()
+                  // stop()
               }
             })
             obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
@@ -122,9 +122,9 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'DELETE'){
           if(current.has(mainURL.hostname)){
             const obj = current.get(mainURL.hostname)
-            const hash = obj.torrent.infoHash
+            // const hash = obj.torrent.infoHash
             obj.stop()
-            // current.delete(mainURL.hostname)
+            current.delete(mainURL.hostname)
             // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
             return new Response(mainURL.hostname, {status: 200, headers: {'X-Hash': hash}})
           } else {
@@ -150,7 +150,7 @@ export default async function makeMsgFetch (opts = {}) {
   
     async function close(){
         current.forEach((e) => {
-          e.func()
+          // e.func()
           e.stop()
         })
         current.clear()

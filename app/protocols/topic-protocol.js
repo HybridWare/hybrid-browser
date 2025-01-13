@@ -117,15 +117,14 @@ export default async function makeTopicFetch (opts = {}) {
                 connection.get(prop).write(await toBuff(body))
               }
             }
-            return new Response(test.events, {status: 200})
+            return new Response(null, {status: 200})
         }
       } else if(method === 'DELETE'){
-        const buf = Buffer.alloc(32).fill(mainURL.hostname)
-        const str = buf.toString()
+        const str = Buffer.alloc(32).fill(mainURL.hostname).toString()
         if(current.has(str)){
           const test = current.get(str)
           test.stop()
-          // current.delete(str)
+          current.delete(str)
           return new Response(str, {status: 200})
         } else {
           return new Response(str, {status: 400})
@@ -141,7 +140,6 @@ export default async function makeTopicFetch (opts = {}) {
 
     function iter(hostname, bufOFStr){
       const obj = {}
-      current.set(hostname, obj)
       obj.ids = new Set()
       obj.events =  new EventIterator(({ push, fail, stop }) => {
           obj.push = push
@@ -171,6 +169,7 @@ export default async function makeTopicFetch (opts = {}) {
               // stop()
           }
       })
+      current.set(hostname, obj)
       return obj
     }
   

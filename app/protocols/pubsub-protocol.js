@@ -64,7 +64,6 @@ export default async function makePubsubFetch (opts = {}) {
           return new Response(test.events, {status: 200})
         } else {
           const obj = {}
-          current.set(mainURL.hostname, obj)
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
@@ -73,14 +72,33 @@ export default async function makePubsubFetch (opts = {}) {
               return () => {
                   app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
                   current.delete(mainURL.hostname)
-                  stop()
+                  // stop()
               }
             })
+            current.set(mainURL.hostname, obj)
             return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
-        await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
-        return new Response(null, {status: 200})
+        if(current.has(mainURL.hostname)){
+          await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+          return new Response(null, {status: 200})
+        } else {
+          const obj = {}
+          obj.events = new EventIterator(({ push, fail, stop }) => {
+              obj.push = push
+              obj.fail = fail
+              obj.stop = stop
+              app.libp2p.services.pubsub.subscribe(mainURL.hostname)
+              return () => {
+                  app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  current.delete(mainURL.hostname)
+                  // stop()
+              }
+            })
+            current.set(mainURL.hostname, obj)
+            await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+            return new Response(null, {status: 200})
+        }
       } else if(method === 'DELETE'){
         if(current.has(mainURL.hostname)){
           const test = current.get(mainURL.hostname)
