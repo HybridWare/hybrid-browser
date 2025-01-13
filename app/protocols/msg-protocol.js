@@ -125,8 +125,8 @@ export default async function makeMsgFetch (opts = {}) {
             const hash = obj.torrent.infoHash
             obj.stop()
             // current.delete(mainURL.hostname)
-            const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
-            return new Response(test.id, {status: 200, headers: {'X-Hash': hash}})
+            // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
+            return new Response(mainURL.hostname, {status: 200, headers: {'X-Hash': hash}})
           } else {
             // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
             return new Response(null, {status: 200})
