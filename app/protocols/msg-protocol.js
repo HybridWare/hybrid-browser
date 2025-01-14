@@ -54,7 +54,7 @@ export default async function makeMsgFetch (opts = {}) {
               const obj = current.get(mainURL.hostname)
               return new Response(obj.events, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
             } else {
-              const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
+              const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true, buf: useHeaders.has('x-buf') ? JSON.parse(useHeaders.get('x-buf')) : false})
               const obj = {}
               current.set(mainURL.hostname, obj)
               obj.torrent = torrent
@@ -89,7 +89,7 @@ export default async function makeMsgFetch (opts = {}) {
             obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           } else {
-            const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true})
+            const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true, buf: useHeaders.has('x-buf') ? JSON.parse(useHeaders.get('x-buf')) : false})
             const obj = {}
             current.set(mainURL.hostname, obj)
             obj.torrent = torrent
@@ -116,7 +116,7 @@ export default async function makeMsgFetch (opts = {}) {
                   // stop()
               }
             })
-            obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
+            obj.torrent.say(await toBody(body, useHeaders.has('x-bin') ? JSON.parse(useHeaders.get('x-bin')) : false))
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           }
         } else if(method === 'DELETE'){
@@ -125,8 +125,13 @@ export default async function makeMsgFetch (opts = {}) {
             // const hash = obj.torrent.infoHash
             obj.stop()
             current.delete(mainURL.hostname)
-            // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
-            return new Response(mainURL.hostname, {status: 200, headers: {'X-Hash': hash}})
+            let test
+            if(useHeaders.has('x-shred') && JSON.parse(useHeaders.get('x-shred'))){
+              test = await app.shredTorrent(mainURL.hostname, mainURL.pathname, {buf: useHeaders.has('x-buf') ? JSON.parse(useHeaders.get('x-buf')) : false})
+            } else {
+              test = mainURL.hostname
+            }
+            return new Response(test, {status: 200, headers: {'X-Hash': hash}})
           } else {
             // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
             return new Response(null, {status: 200})
