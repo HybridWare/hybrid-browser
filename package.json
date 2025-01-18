@@ -179,8 +179,8 @@
   "homepage": "https://github.com/HybridWare/hybrid-browser#readme",
   "devDependencies": {
     "@netless/extension-flat": "^1.0.1",
-    "electron": "^32.1.2",
-    "electron-builder": "^26.0.0-alpha.7",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8",
     "standard": "^17.1.2"
   },
   "dependencies": {
@@ -222,5 +222,8 @@
     "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
     "wrtc": "^0.4.7",
     "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "dmg-license": "^1.0.11"
   }
 }
