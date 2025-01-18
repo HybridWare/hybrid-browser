@@ -129,7 +129,6 @@
       "artifactName": "${name}-${version}-${os}-${arch}.${ext}",
       "darkModeSupport": true,
       "gatekeeperAssess": false,
-      "mergeASARs": false,
       "target": [
         {
           "target": "dmg",
