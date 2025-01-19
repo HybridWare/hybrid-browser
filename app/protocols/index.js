@@ -1,5 +1,6 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
+import fs from 'fs-extra'
 
 import createBrowserHandler from './browser-protocol.js'
 import createMsgHandler from './msg-protocol.js'
