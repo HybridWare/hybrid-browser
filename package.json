@@ -1,6 +1,6 @@
 {
   "name": "hybrid-browser",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "A peer to peer browser",
   "main": "app/main.cjs",
   "type": "module",
