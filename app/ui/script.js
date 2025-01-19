@@ -7,20 +7,20 @@ const search = $('#search')
 const find = $('#find')
 const actions = $('#actions')
 
-// const checkWindow = document.getElementsByTagName('browser-actions')[0]
-// if(!checkWindow.current){
-//   checkWindow.current = window.getCurrentWindow()
-// }
-// const currentWindow = checkWindow.current
+const checkWindow = document.getElementsByTagName('browser-actions')[0]
+if(!checkWindow.current){
+  checkWindow.current = window.getCurrentWindow()
+}
+const currentWindow = checkWindow.current
 
-const currentWindow = window.getCurrentWindow()
+// const currentWindow = window.getCurrentWindow()
 
 const pageTitle = $('title')
 
 const searchParams = new URL(window.location.href).searchParams
 
 // remove window.searchParams if issues arise
-window.searchParams = searchParams
+// window.searchParams = searchParams
 // remove window.searchParams if issues arise
 
 const toNavigate = searchParams.has('url') ? searchParams.get('url') : DEFAULT_PAGE
