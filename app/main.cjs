@@ -40,7 +40,7 @@ const CS_PRIVILEGES = {
   stream: true
 }
 
-globalProtocol.registerSchemesAsPrivileged([
+protocol.registerSchemesAsPrivileged([
   { scheme: 'hybrid', privileges: BROWSER_PRIVILEGES },
   { scheme: 'bt', privileges: P2P_PRIVILEGES },
   { scheme: 'magnet', privileges: LOW_PRIVILEGES },
