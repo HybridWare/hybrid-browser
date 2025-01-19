@@ -2,7 +2,7 @@
   "name": "hybrid-browser",
   "version": "3.0.2",
   "description": "A peer to peer browser",
-  "main": "app/index.js",
+  "main": "app/main.cjs",
   "type": "module",
   "scripts": {
     "test": "npm run lint",
@@ -67,7 +67,7 @@
     },
     "protocols": [
       {
-        "name": "Holepunch",
+        "name": "hyperdrive",
         "schemes": [
           "hyper"
         ],
@@ -96,14 +96,14 @@
         "role": "Viewer"
       },
       {
-        "name": "InterPlanetary File System",
+        "name": "ipfs",
         "schemes": [
           "ipfs"
         ],
         "role": "Viewer"
       },
       {
-        "name": "BitTorrent",
+        "name": "bittorrent",
         "schemes": [
           "magnet",
           "bt"

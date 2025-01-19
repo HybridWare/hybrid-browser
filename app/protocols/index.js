@@ -1,6 +1,20 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
-import fs from 'fs-extra'
+
+import createBrowserHandler from './browser-protocol.js'
+import createMsgHandler from './msg-protocol.js'
+import createPubsubHandler from './pubsub-protocol.js'
+import createTopicHandler from './topic-protocol.js'
+import createBTHandler from './bt-protocol.js'
+import createMagnetHandler from './magnet-protocol.js'
+import createIPFSHandler from './ipfs-protocol.js'
+import createHyperHandler from './hyper-protocol.js'
+import createOuiHandler from './oui-protocol.js'
+import createGeminiHandler from './gemini-protocol.js'
+import createGopherHandler from './gopher-protocol.js'
+import createHHTTPHandler from './hhttp-protocol.js'
+import createTorHandler from './tor-protocol.js'
+import createIipHandler from './iip-protocol.js'
 
 const P2P_PRIVILEGES = {
   standard: true,
@@ -51,7 +65,6 @@ const {
   tor,
   iip,
   lok,
-  extra
 } = Config
 
 const onCloseHandlers = []
@@ -123,7 +136,6 @@ export function setAsDefaultProtocolClient () {
 export async function setupProtocols (session) {
   const { protocol: sessionProtocol } = session
 
-  const {default: createBrowserHandler} = await import('./browser-protocol.js')
   const browserProtocolHandler = await createBrowserHandler()
   sessionProtocol.handle('hybrid', browserProtocolHandler)
   globalProtocol.handle('hybrid', browserProtocolHandler)
@@ -135,7 +147,6 @@ export async function setupProtocols (session) {
   const sdk = await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})()
 
   // msg
-  const {default: createMsgHandler} = await import('./msg-protocol.js')
   const { handler: msgHandler, close: closeMsg } = await createMsgHandler({...bt, torrentz}, session)
   onCloseHandlers.push(closeMsg)
   sessionProtocol.handle('msg', msgHandler)
@@ -145,7 +156,6 @@ export async function setupProtocols (session) {
   // msg
 
   // pubsub
-  const {default: createPubsubHandler} = await import('./pubsub-protocol.js')
   const { handler: pubsubHandler, close: closePubsub } = await createPubsubHandler({...ipfs, helia}, session)
   onCloseHandlers.push(closePubsub)
   sessionProtocol.handle('pubsub', pubsubHandler)
@@ -155,7 +165,6 @@ export async function setupProtocols (session) {
   // pubsub
 
   // topic
-  const {default: createTopicHandler} = await import('./topic-protocol.js')
   const { handler: topicHandler, close: closeTopic } = await createTopicHandler({...hyper, sdk}, session)
   onCloseHandlers.push(closeTopic)
   sessionProtocol.handle('topic', topicHandler)
@@ -165,13 +174,10 @@ export async function setupProtocols (session) {
   // topic
 
   // bt
-  const {default: createBTHandler} = await import('./bt-protocol.js')
   const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, torrentz}, session)
   onCloseHandlers.push(closeBT)
   sessionProtocol.handle('bt', btHandler)
   globalProtocol.handle('bt', btHandler)
-
-  const {default: createMagnetHandler} = await import('./magnet-protocol.js')
   const magnetHandler = await createMagnetHandler()
   sessionProtocol.handle('magnet', magnetHandler)
   globalProtocol.handle('magnet', magnetHandler)
@@ -180,7 +186,6 @@ export async function setupProtocols (session) {
   // bt
 
   // ipfs
-  const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
   const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
   onCloseHandlers.push(closeIPFS)
   sessionProtocol.handle('ipfs', ipfsHandler)
@@ -190,7 +195,6 @@ export async function setupProtocols (session) {
   // ipfs
 
   // hyper
-  const {default: createHyperHandler} = await import('./hyper-protocol.js')
   const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, sdk}, session)
   onCloseHandlers.push(closeHyper)
   sessionProtocol.handle('hyper', hyperHandler)
@@ -200,7 +204,6 @@ export async function setupProtocols (session) {
   // hyper
 
   // oui
-  const {default: createOuiHandler} = await import('./oui-protocol.js')
   const ouiHandler = await createOuiHandler(oui, session)
   sessionProtocol.handle('oui', ouiHandler)
   globalProtocol.handle('oui', ouiHandler)
@@ -211,7 +214,6 @@ export async function setupProtocols (session) {
   // oui
 
   // gemini
-  const {default: createGeminiHandler} = await import('./gemini-protocol.js')
   const geminiHandler = await createGeminiHandler(gemini, session)
   sessionProtocol.handle('gemini', geminiHandler)
   globalProtocol.handle('gemini', geminiHandler)
@@ -220,7 +222,6 @@ export async function setupProtocols (session) {
   // gemini
 
   // gopher
-  const {default: createGopherHandler} = await import('./gopher-protocol.js')
   const gopherHandler = await createGopherHandler(gopher, session)
   sessionProtocol.handle('gopher', gopherHandler)
   globalProtocol.handle('gopher', gopherHandler)
@@ -229,7 +230,6 @@ export async function setupProtocols (session) {
   // gopher
 
   // hhttp
-  const {default: createHHTTPHandler} = await import('./hhttp-protocol.js')
   const hhttpHandler = await createHHTTPHandler(hhttp, session)
   sessionProtocol.handle('hhttp', hhttpHandler)
   globalProtocol.handle('hhttp', hhttpHandler)
@@ -240,7 +240,6 @@ export async function setupProtocols (session) {
   // hhttp
 
   // tor
-  const {default: createTorHandler} = await import('./tor-protocol.js')
   const torHandler = await createTorHandler(tor, session)
   sessionProtocol.handle('tor', torHandler)
   globalProtocol.handle('tor', torHandler)
@@ -251,7 +250,6 @@ export async function setupProtocols (session) {
   // tor
 
   // iip
-  const {default: createIipHandler} = await import('./iip-protocol.js')
   const iipHandler = await createIipHandler(iip, session)
   sessionProtocol.handle('iip', iipHandler)
   globalProtocol.handle('iip', iipHandler)
@@ -260,15 +258,4 @@ export async function setupProtocols (session) {
 
   console.log('registered i2p protocol')
   // iip
-
-  // loki
-  const {default: createLokHandler} = await import('./lok-protocol.js')
-  const lokHandler = await createLokHandler(lok, session)
-  sessionProtocol.handle('lok', lokHandler)
-  globalProtocol.handle('lok', lokHandler)
-  sessionProtocol.handle('loks', lokHandler)
-  globalProtocol.handle('loks', lokHandler)
-
-  console.log('registered lokinet protocol')
-  // loki
 }

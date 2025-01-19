@@ -1,4 +1,9 @@
-import {BrowserWindow, BrowserView, ipcMain, app} from 'electron'
+import {
+  BrowserWindow,
+  BrowserView,
+  ipcMain,
+  app
+} from 'electron'
 import path from 'node:path'
 import EventEmitter from 'node:events'
 import { fileURLToPath } from 'node:url'
@@ -69,7 +74,7 @@ async function DEFAULT_LIST_ACTIONS () {
 const SHOW_DELAY = 200
 
 // Used to only show one window at a time
-const showQueue = new PQueue({concurrency: 1})
+const showQueue = new PQueue({ concurrency: 1 })
 
 export class WindowManager extends EventEmitter {
   constructor ({
@@ -332,6 +337,9 @@ export class Window extends EventEmitter {
     })
 
     this.web.on('dom-ready', async () => {
+      if (this.web.getURL() === 'hybrid://settings') {
+        this.web.executeJavaScript(`window.onSettings(${JSON.stringify(Config)})`)
+      }
       const hasStyles = await this.web.executeJavaScript(HAS_SHEET)
       console.log({ hasStyles })
       if (!hasStyles) {

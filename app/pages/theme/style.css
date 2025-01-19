@@ -40,7 +40,12 @@ body > h6 {
   display: block;
 }
 
-input, button, textarea, select, select *, option  {
+input,
+button,
+textarea,
+select,
+select *,
+option  {
   color: inherit;
   font-family: inherit;
   font-size: inherit;
@@ -60,11 +65,34 @@ select option {
   color: var(--hy-theme-text);
 }
 
-input, button, textarea, select, select *, video {
+input,
+button,
+textarea,
+select,
+select *,
+video,
+dialog  {
   border: 1px solid var(--hy-theme-primary);
 }
 
-*::selection, option:hover {
+fieldset {
+  border: 1px solid var(--hy-theme-secondary);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+dialog {
+  background: var(--hy-theme-background);
+  color: var(--hy-theme-text);
+  width: 80vw;
+  height: 80vh;
+}
+
+*::selection,
+option:hover {
     background: var(--hy-theme-primary);
     color: var(--hy-theme-text);
 }
@@ -85,7 +113,11 @@ a:visited {
 	color: var(--hy-theme-primary);
 }
 
-img, video, svg, object, audio {
+img,
+video,
+svg,
+object,
+audio {
   width: 80%;
   display: block;
   margin: 1em auto;
@@ -114,12 +146,12 @@ blockquote {
   padding-left: 1em;
 }
 
-blockquote > *::before {
+blockquote>*::before {
   content: "> ";
   color: var(--hy-theme-secondary);
 }
 
-pre > code {
+pre>code {
   display: block;
   padding: 0.5em;
 }
@@ -128,7 +160,7 @@ br {
   display: none;
 }
 
-li {
+ul>li {
   list-style-type: " ⟐ ";
 }
 
@@ -145,7 +177,9 @@ h1 {
 }
 
 /* Reset style for anchors added to headers */
-h2 a, h3 a, h4 a {
+h2 a,
+h3 a,
+h4 a {
   color: var(--hy-theme-text);
   text-decoration: none;
 }
@@ -155,17 +189,23 @@ h1 a {
   text-decoration: none;
 }
 
-h1:hover::after, h2:hover::after, h3:hover::after, h4:hover::after {
+h1:hover::after,
+h2:hover::after,
+h3:hover::after,
+h4:hover::after {
   text-decoration: none !important;
 }
+
 h2::before {
   content: "## ";
   color: var(--hy-theme-secondary)
 }
+
 h3::before {
   content: "### ";
   color: var(--hy-theme-secondary)
 }
+
 h4::before {
   content: "#### ";
   color: var(--hy-theme-secondary)
@@ -184,6 +224,7 @@ h4::before {
     border: 2px solid transparent;
     background-clip: content-box;
 }
+
 *::-webkit-scrollbar-track {
     background-color: rgba(0,0,0,0);
 }

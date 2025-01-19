@@ -149,3 +149,21 @@ browser-actions:empty {
 *:focus {
   outline: var(--border-width) solid var(--hy-theme-secondary);
 }
+
+*::-webkit-scrollbar {
+  width: 1em;
+  background: var(--hy-theme-background);    
+}
+
+*::-webkit-scrollbar-corner {
+    background: rgba(0,0,0,0);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--hy-theme-primary);
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+    background-color: rgba(0,0,0,0);
+}
