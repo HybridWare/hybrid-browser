@@ -144,7 +144,7 @@ export async function setupProtocols (session) {
   console.log('registered hybrid protocol')
 
   const torrentz = await (async () => {const {default: Torrentz} = await import('torrentz');return new Torrentz(bt);})()
-  const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});})()
+  // const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {services: {dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});})()
   const sdk = await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})()
 
   // msg
@@ -157,12 +157,12 @@ export async function setupProtocols (session) {
   // msg
 
   // pubsub
-  const { handler: pubsubHandler, close: closePubsub } = await createPubsubHandler({...ipfs, helia}, session)
-  onCloseHandlers.push(closePubsub)
-  sessionProtocol.handle('pubsub', pubsubHandler)
-  globalProtocol.handle('pubsub', pubsubHandler)
+  // const { handler: pubsubHandler, close: closePubsub } = await createPubsubHandler({...ipfs, helia}, session)
+  // onCloseHandlers.push(closePubsub)
+  // sessionProtocol.handle('pubsub', pubsubHandler)
+  // globalProtocol.handle('pubsub', pubsubHandler)
 
-  console.log('registered pubsub protocol')
+  // console.log('registered pubsub protocol')
   // pubsub
 
   // topic
@@ -187,12 +187,12 @@ export async function setupProtocols (session) {
   // bt
 
   // ipfs
-  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
-  onCloseHandlers.push(closeIPFS)
-  sessionProtocol.handle('ipfs', ipfsHandler)
-  globalProtocol.handle('ipfs', ipfsHandler)
+  // const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
+  // onCloseHandlers.push(closeIPFS)
+  // sessionProtocol.handle('ipfs', ipfsHandler)
+  // globalProtocol.handle('ipfs', ipfsHandler)
 
-  console.log('registered ipfs protocol')
+  // console.log('registered ipfs protocol')
   // ipfs
 
   // hyper
