@@ -1,6 +1,9 @@
-import { app } from 'electron'
-import path from 'path'
+import { app, ipcMain } from 'electron'
 import RC from 'rc'
+
+import os from 'os'
+import path from 'path'
+import { readFile, writeFile } from 'fs/promises'
 
 const USER_DATA = app.getPath('userData')
 const DEFAULT_EXTENSIONS_DIR = path.join(USER_DATA, 'extensions')
@@ -11,7 +14,10 @@ const DEFAULT_BT_DIR = path.join(USER_DATA, 'bt')
 
 const DEFAULT_PAGE = 'hybrid://welcome'
 
-export default RC('hybrid', {
+const DEFAULT_CONFIG_FILE_NAME = '.hybridrc'
+export const MAIN_RC_FILE = path.join(os.homedir(), DEFAULT_CONFIG_FILE_NAME)
+
+const Config = RC('hybrid', {
   llm: {
     enabled: true,
 
@@ -19,7 +25,7 @@ export default RC('hybrid', {
     // Uncomment this to use OpenAI instead
     // baseURL: 'https://api.openai.com/v1/'
     apiKey: 'ollama',
-    model: 'phi3:3.8b-mini-4k-instruct-q4_0'
+    model: 'qwen2.5-coder:7b-instruct-q4_K_M'
   },
   accelerators: {
     OpenDevTools: 'CommandOrControl+Shift+I',
@@ -103,3 +109,64 @@ export default RC('hybrid', {
     status: true
   }
 })
+
+export default Config
+
+export function addPreloads (session) {
+  const preloadPath = path.join(import.meta.dirname, 'settings-preload.js')
+  const preloads = session.getPreloads()
+  preloads.push(preloadPath)
+  session.setPreloads(preloads)
+}
+
+ipcMain.handle('settings-save', async (event, configMap) => {
+  await save(configMap)
+})
+
+export async function save (configMap) {
+  const currentRC = await getRCData()
+  let hasChanged = false
+  for (const [key, value] of Object.entries(configMap)) {
+    const existing = getFrom(key, Config)
+    if (existing === undefined) continue
+    if (value === existing) continue
+    hasChanged = true
+    setOn(key, Config, value)
+    setOn(key, currentRC, value)
+  }
+  if (hasChanged) {
+    await writeFile(MAIN_RC_FILE, JSON.stringify(currentRC, null, '\t'))
+  }
+}
+
+async function getRCData () {
+  try {
+    const data = await readFile(MAIN_RC_FILE, 'utf8')
+    return JSON.parse(data)
+  } catch {
+    return {}
+  }
+}
+
+function setOn (path, object, value) {
+  if (path.includes('.')) {
+    const [key, subkey] = path.split('.')
+    if (typeof object[key] !== 'object') {
+      object[key] = {}
+    }
+    object[key][subkey] = value
+  } else {
+    object[path] = value
+  }
+}
+
+// No support for more than one level
+function getFrom (path, object) {
+  if (path.includes('.')) {
+    const [key, subkey] = path.split('.')
+    if (typeof object[key] !== 'object') return undefined
+    return object[key][subkey]
+  } else {
+    return object[path]
+  }
+}

@@ -180,13 +180,13 @@ export async function setupProtocols (session) {
   // bt
 
   // ipfs
-  const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
-  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
-  onCloseHandlers.push(closeIPFS)
-  sessionProtocol.handle('ipfs', ipfsHandler)
-  globalProtocol.handle('ipfs', ipfsHandler)
+  // const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
+  // const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
+  // onCloseHandlers.push(closeIPFS)
+  // sessionProtocol.handle('ipfs', ipfsHandler)
+  // globalProtocol.handle('ipfs', ipfsHandler)
 
-  console.log('registered ipfs protocol')
+  // console.log('registered ipfs protocol')
   // ipfs
 
   // hyper
