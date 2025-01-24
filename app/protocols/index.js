@@ -50,7 +50,6 @@ const {
   hhttp,
   tor,
   iip,
-  lok,
   extra
 } = Config
 
@@ -77,8 +76,6 @@ export function registerPrivileges () {
     { scheme: 'tors', privileges: P2P_PRIVILEGES },
     { scheme: 'iip', privileges: CS_PRIVILEGES },
     { scheme: 'iips', privileges: P2P_PRIVILEGES },
-    { scheme: 'lok', privileges: CS_PRIVILEGES },
-    { scheme: 'loks', privileges: P2P_PRIVILEGES },
     { scheme: 'msg', privileges: P2P_PRIVILEGES },
     { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
     { scheme: 'topic', privileges: P2P_PRIVILEGES }
@@ -113,8 +110,6 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('tors')
   app.setAsDefaultProtocolClient('iip')
   app.setAsDefaultProtocolClient('iips')
-  app.setAsDefaultProtocolClient('lok')
-  app.setAsDefaultProtocolClient('loks')
   app.setAsDefaultProtocolClient('msg')
   app.setAsDefaultProtocolClient('pubsub')
   app.setAsDefaultProtocolClient('topic')
@@ -260,15 +255,4 @@ export async function setupProtocols (session) {
 
   console.log('registered i2p protocol')
   // iip
-
-  // loki
-  const {default: createLokHandler} = await import('./lok-protocol.js')
-  const lokHandler = await createLokHandler(lok, session)
-  sessionProtocol.handle('lok', lokHandler)
-  globalProtocol.handle('lok', lokHandler)
-  sessionProtocol.handle('loks', lokHandler)
-  globalProtocol.handle('loks', lokHandler)
-
-  console.log('registered lokinet protocol')
-  // loki
 }
