@@ -4,7 +4,6 @@ export const version = '3.0.3'
 export const dependencies = {
   "@chainsafe/libp2p-gossipsub": "^13.2.0",
   "@derhuerst/gemini": "^2.0.0",
-  "@helia/mfs": "^3.0.1",
   "@helia/unixfs": "^4.0.2",
   "@libp2p/identify": "^2.1.5",
   "@libp2p/kad-dht": "^12.1.5",
@@ -37,7 +36,5 @@ export const dependencies = {
   "socks-proxy-agent": "^8.0.2",
   "streamx": "^2.16.1",
   "torrentz": "^18.0.3",
-  "whatwg-mimetype": "github:jsdom/whatwg-mimetype",
-  "wrtc": "^0.4.7",
-  "ws": "^8.18.0"
+  "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
 }
