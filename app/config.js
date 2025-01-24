@@ -107,10 +107,6 @@ const Config = RC('hybrid', {
 
   iip: {
     status: true
-  },
-
-  lok: {
-    status: true
   }
 })
 
