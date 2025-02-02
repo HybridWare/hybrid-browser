@@ -1,4 +1,8 @@
-import {Menu, MenuItem, clipboard} from 'electron'
+import {
+  Menu,
+  MenuItem,
+  clipboard
+} from 'electron'
 
 export function attachContextMenus ({ window, createWindow, extensions }) {
   if (window.web) {

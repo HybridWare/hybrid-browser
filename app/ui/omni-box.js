@@ -22,8 +22,6 @@ class OmniBox extends HTMLElement {
           <input class="omni-box-input" title="Enter search params">
           <button class="omni-box-button" type="submit" title="Load page or Reload">⊙</button>
         </form>
-        <button class="omni-box-button omni-box-open" title="Open a new window">+</button>
-        <button class="omni-box-button omni-box-close" title="Close the current window">×</button>
       </section>
     `
     this.backButton = this.$('.omni-box-back')
@@ -32,8 +30,6 @@ class OmniBox extends HTMLElement {
     this.input = this.$('.omni-box-input')
     this.targetUrl = this.$('.omni-box-target-input')
     this.homeButton = this.$('.omni-box-home')
-    this.openButton = this.$('.omni-box-open')
-    this.closeButton = this.$('.omni-box-close')
 
     this.input.addEventListener('focus', () => {
       this.input.select()
@@ -103,12 +99,6 @@ class OmniBox extends HTMLElement {
     })
     this.homeButton.addEventListener('click', () => {
       this.dispatchEvent(new CustomEvent('home'))
-    })
-    this.openButton.addEventListener('click', () => {
-      this.dispatchEvent(new CustomEvent('open'))
-    })
-    this.closeButton.addEventListener('click', () => {
-      this.dispatchEvent(new CustomEvent('close'))
     })
 
     // middle mouse click paste&go

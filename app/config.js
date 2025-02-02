@@ -1,9 +1,10 @@
 import { app, ipcMain } from 'electron'
 import RC from 'rc'
 
-import os from 'os'
-import path from 'path'
-import { readFile, writeFile } from 'fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+import url from 'node:url'
+import { readFile, writeFile } from 'node:fs/promises'
 
 const USER_DATA = app.getPath('userData')
 const DEFAULT_EXTENSIONS_DIR = path.join(USER_DATA, 'extensions')
@@ -74,7 +75,7 @@ const Config = RC('hybrid', {
     status: true,
     block: true
   },
-  
+
   hyper: {
     storage: DEFAULT_HYPER_DIR,
     refresh: false,
@@ -109,7 +110,7 @@ const Config = RC('hybrid', {
 export default Config
 
 export function addPreloads (session) {
-  const preloadPath = path.join(import.meta.dirname, 'settings-preload.js')
+  const preloadPath = path.join(url.fileURLToPath(new URL('./', import.meta.url)), 'settings-preload.js')
   const preloads = session.getPreloads()
   preloads.push(preloadPath)
   session.setPreloads(preloads)

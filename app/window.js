@@ -1,4 +1,9 @@
-import {BrowserWindow, BrowserView, ipcMain, app} from 'electron'
+import {
+  BrowserWindow,
+  BrowserView,
+  ipcMain,
+  app
+} from 'electron'
 import path from 'node:path'
 import EventEmitter from 'node:events'
 import { fileURLToPath } from 'node:url'
@@ -35,8 +40,6 @@ try {sheet.cssRules; return true} catch {return false}
 const WINDOW_METHODS = [
   'goBack',
   'goForward',
-  'open',
-  'close',
   'reload',
   'focus',
   'loadURL',
@@ -104,9 +107,6 @@ export class WindowManager extends EventEmitter {
     window.once('close', () => {
       this.windows.delete(window)
       this.emit('close', window)
-    })
-    window.on('tab', () => {
-      this.open()
     })
     window.on('navigating', () => {
       this.restartSaver()
@@ -386,14 +386,6 @@ export class Window extends EventEmitter {
     return this.web.goForward()
   }
 
-  async close () {
-    return this.window.close()
-  }
-
-  async open () {
-    return this.emit('tab')
-  }
-
   async reload () {
     return this.web.reload()
   }
@@ -466,7 +458,7 @@ export class Window extends EventEmitter {
   send (name, ...args) {
     this.emit(name, ...args)
     if (IS_DEBUG) console.log('->', this.id, name, '(', args, ')')
-    this.window.webContents.send(`hybrid-window-${name}`, ...args)
+      this.window.webContents.send(`hybrid-window-${name}`, ...args)
   }
 
   get web () {

@@ -1,40 +1,21 @@
 
-export const name = 'hybrid-browser'
-export const version = '3.0.3'
+export const name = 'agregore-browser'
+export const version = '2.7.0'
 export const dependencies = {
-  "@chainsafe/libp2p-gossipsub": "^13.2.0",
-  "@derhuerst/gemini": "^2.0.0",
-  "@helia/unixfs": "^4.0.2",
-  "@libp2p/identify": "^2.1.5",
-  "@libp2p/kad-dht": "^12.1.5",
-  "@roamhq/wrtc": "^0.8.0",
   "abort-controller": "^3.0.0",
-  "blockstore-fs": "^1.1.10",
-  "create-desktop-shortcuts": "^1.11.0",
-  "data-uri-to-buffer": "^6.0.2",
-  "datastore-fs": "^9.1.8",
+  "create-desktop-shortcuts": "^1.7.0",
+  "data-uri-to-buffer": "^3.0.1",
   "decompress": "^4.2.1",
   "delay": "^6.0.0",
-  "detect-port": "^1.5.1",
-  "electron-extended-webextensions": "github:HybridWare/electron-extended-WebExtensions",
-  "event-iterator": "^2.0.0",
-  "fs-extra": "^11.2.0",
-  "gemini-to-html": "^2.1.0",
-  "gopher-lib": "^0.2.0",
-  "helia": "^5.2.0",
-  "http-proxy-agent": "^7.0.2",
-  "hyper-sdk": "^4.5.0",
-  "mime": "^4.0.1",
+  "fs-extra": "^9.0.1",
+  "gemini-to-html": "^1.0.0",
+  "hyper-sdk": "^4.5.1",
+  "mime": "^2.4.6",
   "multiformats": "^9.9.0",
-  "node-fetch": "^3.3.2",
-  "p-queue": "^8.0.1",
-  "range-parser": "^1.2.1",
+  "p-queue": "^7.3.4",
   "rc": "^1.2.8",
   "sanitize-filename": "^1.6.3",
   "scoped-fs": "^1.4.1",
-  "semver": "^7.6.3",
-  "socks-proxy-agent": "^8.0.2",
-  "streamx": "^2.16.1",
-  "torrentz": "^18.0.3",
-  "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
+  "semver": "^7.5.2",
+  "whatwg-mimetype": "https://github.com/jsdom/whatwg-mimetype#v2.3.0"
 }

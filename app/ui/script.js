@@ -49,14 +49,6 @@ search.addEventListener('home', () => {
   navigateTo('hybrid://welcome').catch(console.error)
 })
 
-search.addEventListener('open', () => {
-  currentWindow.open()
-})
-
-search.addEventListener('close', () => {
-  currentWindow.close()
-})
-
 search.addEventListener('navigate', ({ detail }) => {
   const { url } = detail
 
@@ -100,9 +92,9 @@ currentWindow.on('leave-html-full-screen', () => {
   if (!rawFrame) nav.classList.toggle('hidden', false)
 })
 currentWindow.on('update-target-url', async (url) => {
-  if(search.showTarget){
+  // if(search.showTarget){
     search.showTarget(url)
-  }
+  // }
 })
 currentWindow.on('browser-actions-changed', () => {
   actions.renderLatest()

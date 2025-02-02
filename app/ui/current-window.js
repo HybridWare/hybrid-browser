@@ -30,14 +30,6 @@ window.getCurrentWindow = function getCurrentWindow () {
       return this.invoke('goForward')
     }
 
-    async open () {
-      return this.invoke('open')
-    }
-
-    async close () {
-      return this.invoke('close')
-    }
-
     async reload () {
       return this.invoke('reload')
     }
