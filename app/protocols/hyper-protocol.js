@@ -38,23 +38,6 @@ export default async function makeHyperFetch (opts = {}) {
     }
     const blockList = block ? JSON.parse((await fs.readFile(path.join(storage, 'block.txt'))).toString('utf-8')) : null
   
-    const drives = new Map()
-    const id = await (async () => {
-      const drive = await app.getDrive('id')
-      const check = drive.key.toString('hex')
-      drives.set(check, drive)
-      return check
-    })()
-  
-    async function checkForDrive(prop){
-      if(drives.has(prop)){
-        return drives.get(prop)
-      }
-      const drive = await app.getDrive(prop)
-      drives.set(drive.key.toString('hex'), drive)
-      return drive
-    }
-  
     async function waitForStuff(useTo, mainData) {
       if (useTo.num) {
         return await Promise.race([
@@ -67,14 +50,7 @@ export default async function makeHyperFetch (opts = {}) {
     }
   
     function formatReq(hostname, pathname){
-  
-      const useData = {query: hostname === hostType}
-      if(useData.query){
-        useData.useHost = id
-      } else {
-        useData.useHost = hostname
-      }
-      useData.usePath = decodeURIComponent(pathname)
+      const useData = {query: hostname === hostType, useHost: hostname, usePath: decodeURIComponent(pathname)}
       return useData
     }
 
@@ -144,11 +120,10 @@ export default async function makeHyperFetch (opts = {}) {
               if(blockList.includes(main.useHost)){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
-                const mainKid = drives.get(main.useHost)
+                const mainKid = await app.getDrive(main.useHost)
                 if(mainKid){
                   await mainKid.purge()
                   await mainKid.close()
-                  drives.delete(main.useHost)
                 }
 
                 blockList.push(main.useHost)
@@ -170,7 +145,7 @@ export default async function makeHyperFetch (opts = {}) {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
             }
-            const useDrive = await waitForStuff({num: useOpts.timeout, msg: 'drive'}, checkForDrive(main.useHost))
+            const useDrive = await waitForStuff({num: useOpts.timeout, msg: 'drive'}, app.getDrive(main.useHost))
             const useData = await stat(useDrive, main)
             const useKey = useDrive.key.toString('hex')
             if(useData.directory){
@@ -195,7 +170,7 @@ export default async function makeHyperFetch (opts = {}) {
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
       
-          const useDrive = await waitForStuff({num: useOpts.timeout, msg: 'drive'}, checkForDrive(main.useHost))
+          const useDrive = await waitForStuff({num: useOpts.timeout, msg: 'drive'}, app.getDrive(main.useHost))
           const useData = await stat(useDrive, main)
           const useKey = useDrive.key.toString('hex')
           
@@ -227,7 +202,7 @@ export default async function makeHyperFetch (opts = {}) {
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
           
-          const useDrive = await checkForDrive(main.useHost)
+          const useDrive = await app.getDrive(main.useHost)
           const useName = useDrive.key.toString('hex')
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
           const getSaved = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? await saveFormData(useDrive, useName, main, handleFormData(await session.formData()), useOpt) : await saveFileData(useDrive, useName, main, body, useOpt)
@@ -239,7 +214,7 @@ export default async function makeHyperFetch (opts = {}) {
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
           
-          const useDrive = await checkForDrive(main.useHost)
+          const useDrive = await app.getDrive(main.useHost)
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
           if (path.extname(main.usePath)) {
             const useData = await useDrive.entry(main.usePath)
@@ -270,11 +245,12 @@ export default async function makeHyperFetch (opts = {}) {
     }
   
     async function close(){
-        for (const drive of drives.values()) {
-            await drive.close()
-        }
-        drives.clear()
-        return await app.close()
+      for(const i of app.driveCache.values()){
+        // await i.purge()
+        await i.close()
+      }
+      app.driveCache.clear()
+      return await app.close()
     }
 
     function intoStream (data) {
