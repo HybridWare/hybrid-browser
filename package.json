@@ -204,6 +204,7 @@
     "helia": "^5.2.0",
     "http-proxy-agent": "^7.0.2",
     "hyper-sdk": "^5.1.0",
+    "ipfs-pubsub-room": "github:ducksandgoats/ipfs-pubsub-room",
     "mime": "^4.0.6",
     "multiformats": "^9.9.0",
     "node-fetch": "^3.3.2",

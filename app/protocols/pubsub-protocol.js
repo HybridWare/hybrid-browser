@@ -1,4 +1,5 @@
 export default async function makePubsubFetch (opts = {}) {
+    const {default: Room} = await import('ipfs-pubsub-room')
     const { Readable } = await import('streamx')
     const path = await import('path')
     const fs = await import('fs/promises')
@@ -63,14 +64,20 @@ export default async function makePubsubFetch (opts = {}) {
           const test = current.get(mainURL.hostname)
           return new Response(test.events, {status: 200})
         } else {
-          const obj = {}
+          const obj = {room: new Room(app.libp2p, mainURL.hostname)}
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
               obj.stop = stop
-              app.libp2p.services.pubsub.subscribe(mainURL.hostname)
+              function handleFunc(message){
+                push(message.data)
+              }
+              obj.room.on('message', handleFunc)
+              // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
               return () => {
-                  app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  obj.room.off('message', handleFunc)
+                  obj.room.leave().then(() => {}).catch(console.error)
                   current.delete(mainURL.hostname)
                   // stop()
               }
@@ -80,23 +87,32 @@ export default async function makePubsubFetch (opts = {}) {
         }
       } else if(method === 'POST'){
         if(current.has(mainURL.hostname)){
-          await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+          const test = current.get(mainURL.hostname)
+          test.room.broadcast(await toStr(body))
+          // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
           return new Response(null, {status: 200})
         } else {
-          const obj = {}
+          const obj = {room: new Room(app.libp2p, mainURL.hostname)}
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
               obj.fail = fail
               obj.stop = stop
-              app.libp2p.services.pubsub.subscribe(mainURL.hostname)
+              function handleFunc(message){
+                push(message.data)
+              }
+              obj.room.on('message', handleFunc)
+              // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
               return () => {
-                  app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                  obj.room.off('message', handleFunc)
+                  obj.room.leave().then(() => {}).catch(console.error)
                   current.delete(mainURL.hostname)
                   // stop()
               }
             })
             current.set(mainURL.hostname, obj)
-            await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+            obj.room.broadcast(await toStr(body))
+            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
             return new Response(null, {status: 200})
         }
       } else if(method === 'DELETE'){

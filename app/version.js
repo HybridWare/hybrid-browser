@@ -1,6 +1,6 @@
 
 export const name = 'hybrid-browser'
-export const version = '3.0.4'
+export const version = '3.0.5'
 export const dependencies = {
   "@chainsafe/libp2p-gossipsub": "^14.1.0",
   "@derhuerst/gemini": "^2.0.0",
@@ -22,6 +22,7 @@ export const dependencies = {
   "helia": "^5.2.0",
   "http-proxy-agent": "^7.0.2",
   "hyper-sdk": "^5.1.0",
+  "ipfs-pubsub-room": "github:ducksandgoats/ipfs-pubsub-room",
   "mime": "^4.0.6",
   "multiformats": "^9.9.0",
   "node-fetch": "^3.3.2",
