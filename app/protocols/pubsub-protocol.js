@@ -39,19 +39,17 @@ export default async function makePubsubFetch (opts = {}) {
 
     const current = new Map()
 
-    const handle = (message) => {
-        if(current.has(message.detail.topic)){
-            const {push} = current.get(message.detail.topic)
-            push(message.detail.data)
-        }
-    }
-    app.libp2p.services.pubsub.addEventListener('message', handle)
-
     async function makePubsub(session){
       try {
       const mainURL = new URL(session.url)
       const body = session.body
       const method = session.method
+      const headers = session.headers
+      const search = mainURL.searchParams
+
+      if(mainURL.pathname !== '/'){
+        throw new Error('path must be /')
+      }
         if(!mainURL.hostname){
             throw new Error('must have hostname')
         }
@@ -70,7 +68,7 @@ export default async function makePubsubFetch (opts = {}) {
               obj.fail = fail
               obj.stop = stop
               function handleFunc(message){
-                push(message.data)
+                push(message)
               }
               obj.room.on('message', handleFunc)
               // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
@@ -86,10 +84,17 @@ export default async function makePubsubFetch (opts = {}) {
             return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
+        const id = headers.has('x-id') || search.has('x-id') ? headers.get('x-id') || search.get('x-id') : null
         if(current.has(mainURL.hostname)){
-          const test = current.get(mainURL.hostname)
-          test.room.broadcast(await toStr(body))
-          // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+          if(id){
+            const test = current.get(mainURL.hostname)
+            test.room.sendTo(id, await toStr(body))
+            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+          } else {
+            const test = current.get(mainURL.hostname)
+            test.room.broadcast(await toStr(body))
+            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+          }
           return new Response(null, {status: 200})
         } else {
           const obj = {room: new Room(app.libp2p, mainURL.hostname)}
@@ -98,7 +103,7 @@ export default async function makePubsubFetch (opts = {}) {
               obj.fail = fail
               obj.stop = stop
               function handleFunc(message){
-                push(message.data)
+                push(message)
               }
               obj.room.on('message', handleFunc)
               // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
@@ -111,8 +116,14 @@ export default async function makePubsubFetch (opts = {}) {
               }
             })
             current.set(mainURL.hostname, obj)
-            obj.room.broadcast(await toStr(body))
-            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+
+            if(id){
+              obj.room.sendTo(id, await toStr(body))
+              // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+            } else {
+              obj.room.broadcast(await toStr(body))
+              // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
+            }
             return new Response(null, {status: 200})
         }
       } else if(method === 'DELETE'){

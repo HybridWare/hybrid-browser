@@ -37,38 +37,50 @@ export default async function makeTopicFetch (opts = {}) {
 
     const current = new Map()
     const connection = new Map()
+    const line = new Map()
 
     function handle(socket, relay){
+      const pub = socket.publicKey.toString('hex')
+      const peerKey = relay.publicKey
+      socket.peerKey = peerKey
+      if(!socket.ids){
+        socket.ids = new Set()
+      }
       for(const topic of relay.topics){
         const bufToStr = topic.toString()
         if(current.has(bufToStr)){
-          if(!socket.ids){
-            socket.ids = new Set()
-          }
-          const pub = socket.publicKey.toString('hex')
           if(!connection.has(pub)){
             connection.set(pub, socket)
           }
           const test = current.get(bufToStr)
           if(!test.ids.has(pub)){
             test.ids.add(pub)
-            function handler(){
-              socket.off('data', test.push)
-              socket.off('error', test.fail)
-              socket.off('close', handler)
-              connection.delete(pub)
-              // for(const p of socket.ids.values()){
-              //   //
-              // }
-              // delete test.ids[socket.publicKey.toString('hex')]
-          }
-          socket.on('data', test.push)
-          socket.on('error', test.fail)
-          socket.on('close', handler)
           }
           if(!socket.ids.has(bufToStr)){
             socket.ids.add(bufToStr)
           }
+        }
+      }
+      if(connection.has(pub)){
+        if(!socket.funcs){
+          function handleData(data){
+            test.push({peer: peerKey, data})
+          }
+          function handleErr(err){
+            test.fail(err)
+          }
+          function handler(){
+            socket.off('data', handleData)
+            socket.off('error', handleErr)
+            socket.off('close', handler)
+        }
+        socket.on('data', handleData)
+        socket.on('error', handleErr)
+        socket.on('close', handler)
+        socket.funcs = true
+        }
+        if(!line.has(peerKey, socket)){
+          line.set(peerKey, socket)
         }
       }
     }
@@ -80,6 +92,12 @@ export default async function makeTopicFetch (opts = {}) {
       const mainURL = new URL(session.url)
       const body = session.body
       const method = session.method
+      const headers = session.headers
+      const search = mainURL.searchParams
+
+      if(mainURL.pathname !== '/'){
+        throw new Error('path must be /')
+      }
 
         if(!mainURL.hostname){
             throw new Error('must have hostname')
@@ -100,21 +118,34 @@ export default async function makeTopicFetch (opts = {}) {
           return new Response(test.events, {status: 200})
         }
       } else if(method === 'POST'){
+        const id = headers.has('x-id') || search.has('x-id') ? headers.get('x-id') || search.get('x-id') : null
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
         const str = buf.toString()
         if(current.has(str)){
-          const test = current.get(str)
-          for(const prop in test.ids.values()){
-            if(connection.has(prop)){
-              connection.get(prop).write(await toBuff(body))
+          if(id){
+            if(line.has(id)){
+              line.get(id).write(await toBuff(body))
+            }
+          } else {
+            const test = current.get(str)
+            for(const prop of test.ids){
+              if(connection.has(prop)){
+                connection.get(prop).write(await toBuff(body))
+              }
             }
           }
           return new Response(null, {status: 200})
         } else {
             const test = iter(str, buf)
-            for(const prop in test.ids.values()){
-              if(connection.has(prop)){
-                connection.get(prop).write(await toBuff(body))
+            if(id){
+              if(line.has(id)){
+                line.get(id).write(await toBuff(body))
+              }
+            } else {
+              for(const prop of test.ids){
+                if(connection.has(prop)){
+                  connection.get(prop).write(await toBuff(body))
+                }
               }
             }
             return new Response(null, {status: 200})
@@ -151,20 +182,24 @@ export default async function makeTopicFetch (opts = {}) {
           return () => {
               // disc.destroy().then(console.log).catch(console.error)
               app.swarm.leave(bufOFStr).then(console.log).catch(console.error)
-              if(current.has(hostname)){
+              // if(current.has(hostname)){
                 const testing = current.get(hostname)
-                for(const prop in testing.ids.values()){
+                for(const prop of testing.ids){
                   if(connection.has(prop)){
                     const soc = connection.get(prop)
                     if(soc.ids.has(hostname)){
                       soc.ids.delete(hostname)
                       if(!soc.ids.size){
+                        if(line.has(soc.peerKey)){
+                          line.delete(soc.peerKey)
+                        }
                         soc.destroy()
+                        connection.delete(prop)
                       }
                     }
                   }
                 }
-              }
+              // }
               current.delete(hostname)
               // stop()
           }

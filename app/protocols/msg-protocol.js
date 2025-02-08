@@ -43,6 +43,11 @@ export default async function makeMsgFetch (opts = {}) {
         const body = session.body
         const method = session.method
         const useHeaders = session.headers
+        const useSearch = mainURL.searchParams
+  
+        if(mainURL.pathname !== '/'){
+          throw new Error('path must be /')
+        }
         if(!mainURL.hostname){
             throw new Error('must have hostname')
         }
@@ -84,9 +89,10 @@ export default async function makeMsgFetch (opts = {}) {
               return new Response(obj.events, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
             }
         } else if(method === 'POST'){
+          const id = headers.has('x-id') || search.has('x-id') ? headers.get('x-id') || search.get('x-id') : null
           if(current.has(mainURL.hostname)){
             const obj = current.get(mainURL.hostname)
-            obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : false))
+            obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : null), id)
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           } else {
             const {torrent} = await app.loadTorrent(mainURL.hostname, mainURL.pathname, {torrent: true, buf: useHeaders.has('x-buf') ? JSON.parse(useHeaders.get('x-buf')) : false})
@@ -116,7 +122,7 @@ export default async function makeMsgFetch (opts = {}) {
                   // stop()
               }
             })
-            obj.torrent.say(await toBody(body, useHeaders.has('x-bin') ? JSON.parse(useHeaders.get('x-bin')) : false))
+            obj.torrent.say(await toBody(body, useHeaders.has('x-bin') ? JSON.parse(useHeaders.get('x-bin')) : null), id)
             return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
           }
         } else if(method === 'DELETE'){
