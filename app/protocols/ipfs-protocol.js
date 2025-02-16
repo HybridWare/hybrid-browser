@@ -1,4 +1,5 @@
 export default async function makeIPFSFetch (opts = {}) {
+  const errLog = opts.err
     const { CID } = await import('multiformats/cid')
     const {default: parseRange} = await import('range-parser')
     const {default: mime} = await import('mime')
@@ -289,7 +290,9 @@ export default async function makeIPFSFetch (opts = {}) {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
       } catch (error) {
-        console.error(error)
+        if(errLog){
+          console.error(error)
+        }
         return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
       }
     }

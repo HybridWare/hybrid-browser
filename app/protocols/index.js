@@ -50,7 +50,7 @@ const {
   hhttp,
   tor,
   iip,
-  extra
+  err
 } = Config
 
 const onCloseHandlers = []
@@ -131,7 +131,7 @@ export async function setupProtocols (session) {
 
   // msg
   const {default: createMsgHandler} = await import('./msg-protocol.js')
-  const { handler: msgHandler, close: closeMsg } = await createMsgHandler({...bt, torrentz}, session)
+  const { handler: msgHandler, close: closeMsg } = await createMsgHandler({...bt, err, torrentz}, session)
   onCloseHandlers.push(closeMsg)
   sessionProtocol.handle('msg', msgHandler)
   globalProtocol.handle('msg', msgHandler)
@@ -141,7 +141,7 @@ export async function setupProtocols (session) {
 
   // pubsub
   const {default: createPubsubHandler} = await import('./pubsub-protocol.js')
-  const { handler: pubsubHandler, close: closePubsub } = await createPubsubHandler({...ipfs, helia}, session)
+  const { handler: pubsubHandler, close: closePubsub } = await createPubsubHandler({...ipfs, err, helia}, session)
   onCloseHandlers.push(closePubsub)
   sessionProtocol.handle('pubsub', pubsubHandler)
   globalProtocol.handle('pubsub', pubsubHandler)
@@ -151,7 +151,7 @@ export async function setupProtocols (session) {
 
   // topic
   const {default: createTopicHandler} = await import('./topic-protocol.js')
-  const { handler: topicHandler, close: closeTopic } = await createTopicHandler({...hyper, sdk}, session)
+  const { handler: topicHandler, close: closeTopic } = await createTopicHandler({...hyper, err, sdk}, session)
   onCloseHandlers.push(closeTopic)
   sessionProtocol.handle('topic', topicHandler)
   globalProtocol.handle('topic', topicHandler)
@@ -161,7 +161,7 @@ export async function setupProtocols (session) {
 
   // bt
   const {default: createBTHandler} = await import('./bt-protocol.js')
-  const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, torrentz}, session)
+  const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, err, torrentz}, session)
   onCloseHandlers.push(closeBT)
   sessionProtocol.handle('bt', btHandler)
   globalProtocol.handle('bt', btHandler)
@@ -176,7 +176,7 @@ export async function setupProtocols (session) {
 
   // ipfs
   const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
-  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, helia}, session)
+  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, err, helia}, session)
   onCloseHandlers.push(closeIPFS)
   sessionProtocol.handle('ipfs', ipfsHandler)
   globalProtocol.handle('ipfs', ipfsHandler)
@@ -186,7 +186,7 @@ export async function setupProtocols (session) {
 
   // hyper
   const {default: createHyperHandler} = await import('./hyper-protocol.js')
-  const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, sdk}, session)
+  const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, err, sdk}, session)
   onCloseHandlers.push(closeHyper)
   sessionProtocol.handle('hyper', hyperHandler)
   globalProtocol.handle('hyper', hyperHandler)

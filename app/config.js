@@ -62,6 +62,8 @@ const Config = RC('hybrid', {
   defaultPage: DEFAULT_PAGE,
   autoHideMenuBar: false,
 
+  err: true,
+
   bt: {
     dir: DEFAULT_BT_DIR,
     refresh: false,

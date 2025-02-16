@@ -1,4 +1,5 @@
 export default async function makePubsubFetch (opts = {}) {
+  const errLog = opts.err
     const {default: Room} = await import('ipfs-pubsub-room')
     const { Readable } = await import('streamx')
     const path = await import('path')
@@ -165,7 +166,9 @@ export default async function makePubsubFetch (opts = {}) {
         if(error.message === 'PublishError.NoPeersSubscribedToTopic'){
           return new Response(null, {status: 200})
         } else {
-          console.error(error)
+          if(errLog){
+            console.error(error)
+          }
           return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
         }
       }

@@ -1,4 +1,5 @@
 export default async function makeTopicFetch (opts = {}) {
+  const errLog = opts.err
     const { Readable, pipelinePromise } = await import('streamx')
     const fs = await import('fs/promises')
     const fse = await import('fs-extra')
@@ -181,7 +182,9 @@ export default async function makeTopicFetch (opts = {}) {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
       } catch (error) {
-        console.error(error)
+        if(errLog){
+          console.error(error)
+        }
         return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
       }
     }

@@ -1,4 +1,5 @@
 export default async function makeBTFetch (opts = {}) {
+  const errLog = opts.err
     const {default: mime} = await import('mime')
     const {default: parseRange} = await import('range-parser')
     const path = await import('path')
@@ -294,7 +295,9 @@ export default async function makeBTFetch (opts = {}) {
             return new Response('invalid method', {status: 400, headers: mainHeaders})
         }
       } catch (error) {
-        console.error(error)
+        if(errLog){
+          console.error(error)
+        }
         return new Response(intoStream(error.stack), {status: 500, headers: mainHeaders})
       }
     }
