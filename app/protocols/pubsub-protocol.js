@@ -57,11 +57,42 @@ export default async function makePubsubFetch (opts = {}) {
             throw new Error('id is blocked')
         }
 
-      if(method === 'GET'){
-        if(current.has(mainURL.hostname)){
-          const test = current.get(mainURL.hostname)
-          return new Response(test.events, {status: 200})
-        } else {
+        if(method === 'HEAD'){
+          if(!current.has(mainURL.hostname)){
+            const obj = {room: new Room(app.libp2p, mainURL.hostname)}
+            obj.events = new EventIterator(({ push, fail, stop }) => {
+                obj.push = push
+                obj.fail = fail
+                obj.stop = stop
+                function handleFunc(message){
+                  push(message)
+                }
+                obj.room.on('message', handleFunc)
+                // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
+                return () => {
+                    // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
+                    obj.room.off('message', handleFunc)
+                    obj.room.leave().then(() => {}).catch(console.error)
+                    current.delete(mainURL.hostname)
+                    // stop()
+                }
+              })
+              current.set(mainURL.hostname, obj)
+          }
+          if(headers.has('x-user') && JSON.parse(headers.has('x-user'))){
+            const {room} = current.get(mainURL.hostname)
+            const arr = room.getPeers()
+            const rand = arr[Math.floor(Math.random() * arr.length)]
+            if(rand){
+              return new Response(null, {status: 200, headers: {'X-Iden': rand}})
+            } else {
+              return new Response(null, {status: 400})
+            }
+          } else {
+            return new Response(null, {status: 200})
+          }
+        } else if(method === 'GET'){
+        if(!current.has(mainURL.hostname)){
           const obj = {room: new Room(app.libp2p, mainURL.hostname)}
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
@@ -81,22 +112,16 @@ export default async function makePubsubFetch (opts = {}) {
               }
             })
             current.set(mainURL.hostname, obj)
-            return new Response(obj.events, {status: 200})
+        }
+        const obj = current.get(mainURL.hostname)
+        if(headers.has('x-users') && JSON.parse(headers.has('x-users'))){
+          return new Response(JSON.stringify(obj.room.getPeers()), {status: 200})
+        } else {
+          return new Response(obj.events, {status: 200})
         }
       } else if(method === 'POST'){
-        const id = headers.has('x-id') || search.has('x-id') ? headers.get('x-id') || search.get('x-id') : null
-        if(current.has(mainURL.hostname)){
-          if(id){
-            const test = current.get(mainURL.hostname)
-            test.room.sendTo(id, await toStr(body))
-            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
-          } else {
-            const test = current.get(mainURL.hostname)
-            test.room.broadcast(await toStr(body))
-            // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
-          }
-          return new Response(null, {status: 200})
-        } else {
+        const id = headers.has('x-iden') || search.has('x-iden') ? headers.get('x-iden') || search.get('x-iden') : null
+        if(!current.has(mainURL.hostname)){
           const obj = {room: new Room(app.libp2p, mainURL.hostname)}
           obj.events = new EventIterator(({ push, fail, stop }) => {
               obj.push = push
@@ -116,16 +141,14 @@ export default async function makePubsubFetch (opts = {}) {
               }
             })
             current.set(mainURL.hostname, obj)
-
-            if(id){
-              obj.room.sendTo(id, await toStr(body))
-              // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
-            } else {
-              obj.room.broadcast(await toStr(body))
-              // await app.libp2p.services.pubsub.publish(mainURL.hostname, new TextEncoder().encode(await toStr(body)))
-            }
-            return new Response(null, {status: 200})
         }
+        const obj = current.get(mainURL.hostname)
+        if(id){
+          obj.room.sendTo(id, await toStr(body))
+        } else {
+          obj.room.broadcast(await toStr(body))
+        }
+        return new Response(null, {status: 200})
       } else if(method === 'DELETE'){
         if(current.has(mainURL.hostname)){
           const test = current.get(mainURL.hostname)
@@ -157,8 +180,10 @@ export default async function makePubsubFetch (opts = {}) {
     }
   
     async function close(){
-        app.libp2p.services.pubsub.removeEventListener('message', handle)
-        current.forEach(({stop}) => {stop()})
+        // app.libp2p.services.pubsub.removeEventListener('message', handle)
+        for(const [k, v] of current){
+          await v.leave()
+        }
         current.clear()
         return
     }
