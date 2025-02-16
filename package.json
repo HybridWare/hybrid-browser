@@ -216,7 +216,7 @@
     "semver": "^7.7.0",
     "socks-proxy-agent": "^8.0.5",
     "streamx": "^2.22.0",
-    "torrentz": "^19.0.3",
+    "torrentz": "^19.0.4",
     "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
   }
 }
