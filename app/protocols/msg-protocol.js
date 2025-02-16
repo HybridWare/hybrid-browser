@@ -85,7 +85,7 @@ export default async function makeMsgFetch (opts = {}) {
             })
           }
           const {torrent} = current.get(mainURL.hostname)
-          if(useHeaders.has('x-user') && JSON.parse(useHeaders.has('x-user'))){
+          if(useHeaders.has('x-iden') && JSON.parse(useHeaders.get('x-iden'))){
             const arr = torrent.allUsers()
             const rand = arr[Math.floor(Math.random() * arr.length)]
             if(rand){
@@ -127,7 +127,7 @@ export default async function makeMsgFetch (opts = {}) {
               current.set(mainURL.hostname, obj)
             }
             const obj = current.get(mainURL.hostname)
-            if(useHeaders.has('x-users')){
+            if(useHeaders.has('x-iden') && JSON.parse(useHeaders.get('x-iden'))){
               return new Response(JSON.stringify(obj.torrent.allUsers()), {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
             } else {
               return new Response(obj.events, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})

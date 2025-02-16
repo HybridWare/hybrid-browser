@@ -79,7 +79,7 @@ export default async function makePubsubFetch (opts = {}) {
               })
               current.set(mainURL.hostname, obj)
           }
-          if(headers.has('x-user') && JSON.parse(headers.has('x-user'))){
+          if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
             const {room} = current.get(mainURL.hostname)
             const arr = room.getPeers()
             const rand = arr[Math.floor(Math.random() * arr.length)]
@@ -114,7 +114,7 @@ export default async function makePubsubFetch (opts = {}) {
             current.set(mainURL.hostname, obj)
         }
         const obj = current.get(mainURL.hostname)
-        if(headers.has('x-users') && JSON.parse(headers.has('x-users'))){
+        if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
           return new Response(JSON.stringify(obj.room.getPeers()), {status: 200})
         } else {
           return new Response(obj.events, {status: 200})
