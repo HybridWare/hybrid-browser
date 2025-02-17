@@ -34,7 +34,6 @@ export const dependencies = {
   "semver": "^7.7.0",
   "socks-proxy-agent": "^8.0.5",
   "streamx": "^2.22.0",
-  "torrent": "^2.0.0",
-  "torrentz": "^18.0.9",
+  "torrentz": "^19.0.6",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
 }
