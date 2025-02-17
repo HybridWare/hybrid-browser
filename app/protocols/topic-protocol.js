@@ -125,12 +125,12 @@ export default async function makeTopicFetch (opts = {}) {
             }
             const rand = arr[Math.floor(Math.random() * arr.length)]
             if(rand){
-              return new Response(null, {status: 200, headers: {'X-Iden': rand}})
+              return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Iden': rand}})
             } else {
-              return new Response(null, {status: 400})
+              return new Response(null, {status: 400, headers: mainHeaders})
             }
           } else {
-            return new Response(null, {status: 200})
+            return new Response(null, {status: 200, headers: mainHeaders})
           }
         } else if(method === 'GET'){
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
@@ -144,9 +144,9 @@ export default async function makeTopicFetch (opts = {}) {
           for(const i of obj.peers){
             arr.push(i)
           }
-          return new Response(JSON.stringify(arr), {status: 200})
+          return new Response(JSON.stringify(arr), {status: 200, headers: mainHeaders})
         } else {
-          return new Response(obj.events, {status: 200})
+          return new Response(obj.events, {status: 200, headers: mainHeaders})
         }
       } else if(method === 'POST'){
         const id = headers.has('x-iden') || search.has('x-iden') ? headers.get('x-iden') || search.get('x-iden') : null
@@ -167,16 +167,16 @@ export default async function makeTopicFetch (opts = {}) {
             }
           }
         }
-        return new Response(null, {status: 200})
+        return new Response(null, {status: 200, headers: mainHeaders})
       } else if(method === 'DELETE'){
         const str = Buffer.alloc(32).fill(mainURL.hostname).toString()
         if(current.has(str)){
           const test = current.get(str)
           test.stop()
           current.delete(str)
-          return new Response(str, {status: 200})
+          return new Response(str, {status: 200, headers: mainHeaders})
         } else {
-          return new Response(str, {status: 400})
+          return new Response(str, {status: 400, headers: mainHeaders})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})

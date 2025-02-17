@@ -90,12 +90,12 @@ export default async function makeMsgFetch (opts = {}) {
             const arr = torrent.allUsers()
             const rand = arr[Math.floor(Math.random() * arr.length)]
             if(rand){
-              return new Response(null, {status: 200, headers: {'X-Iden': rand}})
+              return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Iden': rand}})
             } else {
               return new Response(null, {status: 400})
             }
           } else {
-            return new Response(null, {status: 200, headers: {'X-Hash': torrent.infoHash}})
+            return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Hash': torrent.infoHash}})
           }
         } else if(method === 'GET'){
             if(!current.has(mainURL.hostname)){
@@ -129,9 +129,9 @@ export default async function makeMsgFetch (opts = {}) {
             }
             const obj = current.get(mainURL.hostname)
             if(useHeaders.has('x-iden') && JSON.parse(useHeaders.get('x-iden'))){
-              return new Response(JSON.stringify(obj.torrent.allUsers()), {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
+              return new Response(JSON.stringify(obj.torrent.allUsers()), {status: 200, headers: {...mainHeaders, 'X-Hash': obj.torrent.infoHash}})
             } else {
-              return new Response(obj.events, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
+              return new Response(obj.events, {status: 200, headers: {...mainHeaders, 'X-Hash': obj.torrent.infoHash}})
             }
         } else if(method === 'POST'){
           const id = useHeaders.has('x-iden') || useSearch.has('x-iden') ? useHeaders.get('x-iden') || useSearch.get('x-iden') : null
@@ -166,7 +166,7 @@ export default async function makeMsgFetch (opts = {}) {
           }
           const obj = current.get(mainURL.hostname)
           obj.torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : null), id)
-          return new Response(null, {status: 200, headers: {'X-Hash': obj.torrent.infoHash}})
+          return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Hash': obj.torrent.infoHash}})
         } else if(method === 'DELETE'){
           if(current.has(mainURL.hostname)){
             const obj = current.get(mainURL.hostname)
@@ -179,7 +179,7 @@ export default async function makeMsgFetch (opts = {}) {
             } else {
               test = mainURL.hostname
             }
-            return new Response(test, {status: 200, headers: {'X-Hash': hash}})
+            return new Response(test, {status: 200, headers: {...mainHeaders, 'X-Hash': hash}})
           } else {
             // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
             return new Response(null, {status: 200})

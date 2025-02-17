@@ -85,12 +85,12 @@ export default async function makePubsubFetch (opts = {}) {
             const arr = room.getPeers()
             const rand = arr[Math.floor(Math.random() * arr.length)]
             if(rand){
-              return new Response(null, {status: 200, headers: {'X-Iden': rand}})
+              return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Iden': rand}})
             } else {
-              return new Response(null, {status: 400})
+              return new Response(null, {status: 400, headers: mainHeaders})
             }
           } else {
-            return new Response(null, {status: 200})
+            return new Response(null, {status: 200, headers: mainHeaders})
           }
         } else if(method === 'GET'){
         if(!current.has(mainURL.hostname)){
@@ -116,9 +116,9 @@ export default async function makePubsubFetch (opts = {}) {
         }
         const obj = current.get(mainURL.hostname)
         if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
-          return new Response(JSON.stringify(obj.room.getPeers()), {status: 200})
+          return new Response(JSON.stringify(obj.room.getPeers()), {status: 200, headers: mainHeaders})
         } else {
-          return new Response(obj.events, {status: 200})
+          return new Response(obj.events, {status: 200, headers: mainHeaders})
         }
       } else if(method === 'POST'){
         const id = headers.has('x-iden') || search.has('x-iden') ? headers.get('x-iden') || search.get('x-iden') : null
@@ -149,15 +149,15 @@ export default async function makePubsubFetch (opts = {}) {
         } else {
           obj.room.broadcast(await toStr(body))
         }
-        return new Response(null, {status: 200})
+        return new Response(null, {status: 200, headers: mainHeaders})
       } else if(method === 'DELETE'){
         if(current.has(mainURL.hostname)){
           const test = current.get(mainURL.hostname)
           test.stop()
           current.delete(mainURL.hostname)
-          return new Response(mainURL.hostname, {status: 200})
+          return new Response(mainURL.hostname, {status: 200, headers: mainHeaders})
         } else {
-          return new Response(mainURL.hostname, {status: 400})
+          return new Response(mainURL.hostname, {status: 400, headers: mainHeaders})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
