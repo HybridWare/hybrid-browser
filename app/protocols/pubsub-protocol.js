@@ -59,29 +59,9 @@ export default async function makePubsubFetch (opts = {}) {
         }
 
         if(method === 'HEAD'){
-          if(!current.has(mainURL.hostname)){
-            const obj = {room: new Room(app.libp2p, mainURL.hostname)}
-            obj.events = new EventIterator(({ push, fail, stop }) => {
-                obj.push = push
-                obj.fail = fail
-                obj.stop = stop
-                function handleFunc(message){
-                  push(message)
-                }
-                obj.room.on('message', handleFunc)
-                // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
-                return () => {
-                    // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
-                    obj.room.off('message', handleFunc)
-                    obj.room.leave().then(() => {}).catch(console.error)
-                    current.delete(mainURL.hostname)
-                    // stop()
-                }
-              })
-              current.set(mainURL.hostname, obj)
-          }
+          const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(mainURL.hostname)
           if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
-            const {room} = current.get(mainURL.hostname)
+            const {room} = obj
             const arr = room.getPeers()
             const rand = arr[Math.floor(Math.random() * arr.length)]
             if(rand){
@@ -93,28 +73,7 @@ export default async function makePubsubFetch (opts = {}) {
             return new Response(null, {status: 200, headers: mainHeaders})
           }
         } else if(method === 'GET'){
-        if(!current.has(mainURL.hostname)){
-          const obj = {room: new Room(app.libp2p, mainURL.hostname)}
-          obj.events = new EventIterator(({ push, fail, stop }) => {
-              obj.push = push
-              obj.fail = fail
-              obj.stop = stop
-              function handleFunc(message){
-                push(message)
-              }
-              obj.room.on('message', handleFunc)
-              // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
-              return () => {
-                  // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
-                  obj.room.off('message', handleFunc)
-                  obj.room.leave().then(() => {}).catch(console.error)
-                  current.delete(mainURL.hostname)
-                  // stop()
-              }
-            })
-            current.set(mainURL.hostname, obj)
-        }
-        const obj = current.get(mainURL.hostname)
+        const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(mainURL.hostname)
         if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
           return new Response(JSON.stringify(obj.room.getPeers()), {status: 200, headers: mainHeaders})
         } else {
@@ -122,32 +81,23 @@ export default async function makePubsubFetch (opts = {}) {
         }
       } else if(method === 'POST'){
         const id = headers.has('x-iden') || search.has('x-iden') ? headers.get('x-iden') || search.get('x-iden') : null
-        if(!current.has(mainURL.hostname)){
-          const obj = {room: new Room(app.libp2p, mainURL.hostname)}
-          obj.events = new EventIterator(({ push, fail, stop }) => {
-              obj.push = push
-              obj.fail = fail
-              obj.stop = stop
-              function handleFunc(message){
-                push(message)
-              }
-              obj.room.on('message', handleFunc)
-              // app.libp2p.services.pubsub.subscribe(mainURL.hostname)
-              return () => {
-                  // app.libp2p.services.pubsub.unsubscribe(mainURL.hostname)
-                  obj.room.off('message', handleFunc)
-                  obj.room.leave().then(() => {}).catch(console.error)
-                  current.delete(mainURL.hostname)
-                  // stop()
-              }
-            })
-            current.set(mainURL.hostname, obj)
-        }
-        const obj = current.get(mainURL.hostname)
+        const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(mainURL.hostname)
         if(id){
-          obj.room.sendTo(id, await toStr(body))
+          try {
+            obj.room.sendTo(id, await toStr(body))
+          } catch (error) {
+            if(error.message !== 'PublishError.NoPeersSubscribedToTopic'){
+              console.error(error)
+            }
+          }
         } else {
-          await obj.room.broadcast(await toStr(body))
+          try {
+            await obj.room.broadcast(await toStr(body))
+          } catch (error) {
+            if(error.message !== 'PublishError.NoPeersSubscribedToTopic'){
+              console.error(error)
+            }
+          }
         }
         return new Response(null, {status: 200, headers: mainHeaders})
       } else if(method === 'DELETE'){
@@ -174,6 +124,29 @@ export default async function makePubsubFetch (opts = {}) {
       }
     }
 
+    function iter(hostname){
+      const obj = {room: new Room(app.libp2p, hostname)}
+      obj.events = new EventIterator(({ push, fail, stop }) => {
+          obj.push = push
+          obj.fail = fail
+          obj.stop = stop
+          function handleFunc(message){
+            push(message)
+          }
+          obj.room.on('message', handleFunc)
+          // app.libp2p.services.pubsub.subscribe(hostname)
+          return () => {
+              // app.libp2p.services.pubsub.unsubscribe(hostname)
+              obj.room.off('message', handleFunc)
+              obj.room.leave().then(() => {}).catch(console.error)
+              current.delete(hostname)
+              // stop()
+          }
+        })
+        current.set(hostname, obj)
+        return obj
+    }
+
     async function toStr(data){
       const chunks = []
       for await (let chunk of data) {
@@ -185,7 +158,7 @@ export default async function makePubsubFetch (opts = {}) {
     async function close(){
         // app.libp2p.services.pubsub.removeEventListener('message', handle)
         for(const [k, v] of current){
-          await v.leave()
+          await v.room.leave()
         }
         current.clear()
         return
