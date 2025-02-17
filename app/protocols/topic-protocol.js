@@ -114,11 +114,9 @@ export default async function makeTopicFetch (opts = {}) {
         if(method === 'HEAD'){
           const buf = Buffer.alloc(32).fill(mainURL.hostname)
           const str = buf.toString()
-          if(!current.has(str)){
-            iter(str, buf)
-          }
+          const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(str, buf)
           if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
-            const {peers} = current.has(str)
+            const {peers} = obj
             const arr = []
             for(const i of peers){
               arr.push(i)
@@ -135,10 +133,7 @@ export default async function makeTopicFetch (opts = {}) {
         } else if(method === 'GET'){
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
         const str = buf.toString()
-        if(!current.has(str)){
-          iter(str, buf)
-        }
-        const obj = current.get(mainURL.hostname)
+        const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(str, buf)
         if(headers.has('x-iden') && JSON.parse(headers.get('x-iden'))){
           const arr = []
           for(const i of obj.peers){
@@ -152,16 +147,13 @@ export default async function makeTopicFetch (opts = {}) {
         const id = headers.has('x-iden') || search.has('x-iden') ? headers.get('x-iden') || search.get('x-iden') : null
         const buf = Buffer.alloc(32).fill(mainURL.hostname)
         const str = buf.toString()
-        if(!current.has(str)){
-            iter(str, buf)
-        }
+        const obj = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : iter(str, buf)
         if(id){
           if(line.has(id)){
             line.get(id).write(await toBuff(body))
           }
         } else {
-          const test = current.get(str)
-          for(const prop of test.ids){
+          for(const prop of obj.ids){
             if(connection.has(prop)){
               connection.get(prop).write(await toBuff(body))
             }
@@ -169,14 +161,13 @@ export default async function makeTopicFetch (opts = {}) {
         }
         return new Response(null, {status: 200, headers: mainHeaders})
       } else if(method === 'DELETE'){
-        const str = Buffer.alloc(32).fill(mainURL.hostname).toString()
-        if(current.has(str)){
-          const test = current.get(str)
-          test.stop()
-          current.delete(str)
-          return new Response(str, {status: 200, headers: mainHeaders})
+        if(current.has(mainURL.hostname)){
+          const obj = current.get(mainURL.hostname)
+          obj.stop()
+          current.delete(mainURL.hostname)
+          return new Response(mainURL.hostname, {status: 200, headers: mainHeaders})
         } else {
-          return new Response(str, {status: 400, headers: mainHeaders})
+          return new Response(mainURL.hostname, {status: 400, headers: mainHeaders})
         }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
