@@ -164,7 +164,7 @@ export default async function makePubsubFetch (opts = {}) {
       }
       } catch (error) {
         if(error.message === 'PublishError.NoPeersSubscribedToTopic'){
-          return new Response(null, {status: 200})
+          return new Response(null, {status: 200, headers: mainHeaders})
         } else {
           if(errLog){
             console.error(error)

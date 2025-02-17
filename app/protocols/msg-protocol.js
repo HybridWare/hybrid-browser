@@ -92,7 +92,7 @@ export default async function makeMsgFetch (opts = {}) {
             if(rand){
               return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Iden': rand}})
             } else {
-              return new Response(null, {status: 400})
+              return new Response(null, {status: 400, headers: mainHeaders})
             }
           } else {
             return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Hash': torrent.infoHash}})
@@ -182,7 +182,7 @@ export default async function makeMsgFetch (opts = {}) {
             return new Response(test, {status: 200, headers: {...mainHeaders, 'X-Hash': hash}})
           } else {
             // const test = await app.shredTorrent({msg: mainURL.hostname}, mainURL.pathname, {})
-            return new Response(null, {status: 200})
+            return new Response(null, {status: 200, headers: mainHeaders})
           }
         } else {
             return new Response('invalid method', {status: 400, headers: mainHeaders})
