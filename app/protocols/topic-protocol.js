@@ -195,8 +195,7 @@ export default async function makeTopicFetch (opts = {}) {
               // disc.destroy().then(console.log).catch(console.error)
               app.swarm.leave(bufOFStr).then(console.log).catch(console.error)
               // if(current.has(hostname)){
-                const testing = current.get(hostname)
-                for(const prop of testing.ids){
+                for(const prop of obj.ids){
                   if(connection.has(prop)){
                     const soc = connection.get(prop)
                     if(soc.ids.has(hostname)){
