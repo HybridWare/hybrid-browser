@@ -147,7 +147,7 @@ export default async function makePubsubFetch (opts = {}) {
         if(id){
           obj.room.sendTo(id, await toStr(body))
         } else {
-          obj.room.broadcast(await toStr(body))
+          await obj.room.broadcast(await toStr(body))
         }
         return new Response(null, {status: 200, headers: mainHeaders})
       } else if(method === 'DELETE'){
