@@ -78,7 +78,7 @@ export default async function makeMsgFetch (opts = {}) {
         } else if(method === 'POST'){
           const id = useHeaders.has('x-iden') || useSearch.has('x-iden') ? useHeaders.get('x-iden') || useSearch.get('x-iden') : null
           const {torrent} = current.has(mainURL.hostname) ? current.get(mainURL.hostname) : await iter(mainURL, useHeaders)
-          torrent.say(await toBody(body, useHeaders.has('buf') ? JSON.parse(useHeaders.get('buf')) : null), id)
+          torrent.say(await toBody(body, useHeaders.has('x-str') ? JSON.parse(useHeaders.get('x-str')) : null), id)
           return new Response(null, {status: 200, headers: {...mainHeaders, 'X-Hash': torrent.infoHash}})
         } else if(method === 'DELETE'){
           if(current.has(mainURL.hostname)){
@@ -138,12 +138,12 @@ export default async function makeMsgFetch (opts = {}) {
       return obj
     }
 
-    async function toBody(body, buf){
+    async function toBody(body, str){
       const arr = []
       for await (const data of body){
         arr.push(data)
       }
-      return buf ? Buffer.concat(arr) : Buffer.concat(arr).toString()
+      return str ? Buffer.concat(arr).toString() : Buffer.concat(arr)
     }
   
     async function close(){
