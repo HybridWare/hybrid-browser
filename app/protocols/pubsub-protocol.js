@@ -131,7 +131,8 @@ export default async function makePubsubFetch (opts = {}) {
           obj.fail = fail
           obj.stop = stop
           function handleFunc(message){
-            push(message)
+            message.data = new TextDecoder().decode(message.data)
+            push(JSON.stringify(message))
           }
           obj.room.on('message', handleFunc)
           // app.libp2p.services.pubsub.subscribe(hostname)

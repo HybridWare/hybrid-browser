@@ -117,14 +117,18 @@ export default async function makeMsgFetch (opts = {}) {
             // current.delete(mainURL.hostname)
             stop()
         }
-        torrent.on('msg', push)
+        function onmsg(obj){
+          obj.data = new TextDecoder().decode(obj.data)
+          push(JSON.stringify(obj))
+        }
+        torrent.on('msg', onmsg)
         torrent.on('over', handle)
         // obj.func = () => {
         //   torrent.off('msg', push)
         //   torrent.off('over', handle)
         // }
         return () => {
-            torrent.off('msg', push)
+            torrent.off('msg', onmsg)
             torrent.off('over', handle)
             current.delete(mainURL.hostname)
             // stop()

@@ -68,7 +68,7 @@ export default async function makeTopicFetch (opts = {}) {
       if(connection.has(pub)){
         if(!socket.funcs){
           function handleData(data){
-            test.push({peer: peerKey, data})
+            test.push(JSON.stringify({peer: peerKey, data: new TextDecoder().decode(data)}))
           }
           function handleErr(err){
             test.fail(err)
