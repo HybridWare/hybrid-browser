@@ -5,6 +5,7 @@ export default async function makeMsgFetch (opts = {}) {
     const {Readable} = await import('stream')
     const fse = await import('fs-extra')
     const { EventIterator } = await import('event-iterator')
+    const {concat} = await import('uint8-util')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
     const block = finalOpts.block
@@ -145,16 +146,16 @@ export default async function makeMsgFetch (opts = {}) {
       }
       if(ben){
         if(ben === 'str'){
-          return Buffer.concat(arr).toString()
+          return concat(arr).toString()
         } else if(ben === 'json'){
-          return JSON.parse(Buffer.concat(arr).toString())
+          return JSON.parse(concat(arr).toString())
         } else if(ben === 'buf'){
-          return Buffer.concat(arr)
+          return concat(arr)
         } else {
           throw new Error('x-ben header must must be str, json, or bin')
         }
       } else {
-        return Buffer.concat(arr)
+        return concat(arr)
       }
     }
   
