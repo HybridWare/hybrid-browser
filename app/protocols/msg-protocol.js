@@ -5,7 +5,7 @@ export default async function makeMsgFetch (opts = {}) {
     const {Readable} = await import('stream')
     const fse = await import('fs-extra')
     const { EventIterator } = await import('event-iterator')
-    const {concat} = await import('uint8-util')
+    const {concat, arr2text} = await import('uint8-util')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
     const block = finalOpts.block
@@ -146,9 +146,9 @@ export default async function makeMsgFetch (opts = {}) {
       }
       if(ben){
         if(ben === 'str'){
-          return new TextDecoder().decode(concat(arr))
+          return arr2text(concat(arr))
         } else if(ben === 'json'){
-          return JSON.parse(new TextDecoder().decode(concat(arr)))
+          return JSON.parse(arr2text(concat(arr)))
         } else if(ben === 'buf'){
           return concat(arr)
         } else {
