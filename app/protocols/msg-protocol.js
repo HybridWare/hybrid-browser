@@ -146,9 +146,9 @@ export default async function makeMsgFetch (opts = {}) {
       }
       if(ben){
         if(ben === 'str'){
-          return concat(arr).toString()
+          return new TextDecoder().decode(concat(arr))
         } else if(ben === 'json'){
-          return JSON.parse(concat(arr).toString())
+          return JSON.parse(new TextDecoder().decode(concat(arr)))
         } else if(ben === 'buf'){
           return concat(arr)
         } else {
