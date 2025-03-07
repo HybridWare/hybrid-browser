@@ -35,5 +35,6 @@ export const dependencies = {
   "socks-proxy-agent": "^8.0.5",
   "streamx": "^2.22.0",
   "torrentz": "^19.0.6",
+  "uint8-util": "^2.2.5",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
 }

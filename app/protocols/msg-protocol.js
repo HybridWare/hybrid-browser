@@ -119,7 +119,7 @@ export default async function makeMsgFetch (opts = {}) {
             stop()
         }
         function onmsg(obj){
-          obj.data = new TextDecoder().decode(obj.data)
+          obj.data = JSON.parse(new TextDecoder().decode(obj.data))
           push(JSON.stringify(obj))
         }
         torrent.on('msg', onmsg)
