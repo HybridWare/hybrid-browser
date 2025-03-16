@@ -106,6 +106,9 @@ const Config = RC('hybrid', {
 
   iip: {
     status: true
+  },
+  vid: {
+    status: true
   }
 })
 

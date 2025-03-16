@@ -50,6 +50,7 @@ const {
   hhttp,
   tor,
   iip,
+  vid,
   err
 } = Config
 
@@ -73,12 +74,13 @@ export function registerPrivileges () {
     { scheme: 'hhttp', privileges: CS_PRIVILEGES },
     { scheme: 'hhttps', privileges: P2P_PRIVILEGES },
     { scheme: 'tor', privileges: CS_PRIVILEGES },
-    { scheme: 'tors', privileges: P2P_PRIVILEGES },
+    { scheme: 'tors', privileges: CS_PRIVILEGES },
     { scheme: 'iip', privileges: CS_PRIVILEGES },
-    { scheme: 'iips', privileges: P2P_PRIVILEGES },
+    { scheme: 'iips', privileges: CS_PRIVILEGES },
     { scheme: 'msg', privileges: P2P_PRIVILEGES },
     { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
-    { scheme: 'topic', privileges: P2P_PRIVILEGES }
+    { scheme: 'topic', privileges: P2P_PRIVILEGES },
+    { scheme: 'vid', privileges: CS_PRIVILEGES }
   ])
 }
 
@@ -113,6 +115,7 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('msg')
   app.setAsDefaultProtocolClient('pubsub')
   app.setAsDefaultProtocolClient('topic')
+  app.setAsDefaultProtocolClient('vid')
 }
 
 export async function setupProtocols (session) {
@@ -255,4 +258,13 @@ export async function setupProtocols (session) {
 
   console.log('registered i2p protocol')
   // iip
+
+  // vid
+  const {default: createVidHandler} = await import('./vid-protocol.js')
+  const vidHandler = await createVidHandler(vid, session)
+  sessionProtocol.handle('vid', vidHandler)
+  globalProtocol.handle('vid', vidHandler)
+
+  console.log('registered vid protocol')
+  // vid
 }
