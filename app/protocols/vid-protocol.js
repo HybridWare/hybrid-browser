@@ -15,7 +15,6 @@ export default async function makeVeilid (opts = {}) {
       req.headers.set('X-Iden', mainURL.hostname)
       const reqHeaders = req.headers
       const useUrl = mainAgent + mainURL.pathname
-      console.log(mainURL, searchParams, useUrl, req.headers.get('X-Iden'))
 
 
     const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? (() => {const getHead = reqHeaders.get('X-timer');const getSearch = searchParams.get('x-timer');reqHeaders.delete('x-timer');searchParams.delete('x-timer');getHead !== '0' || getSearch !== '0' ? Number(getHead || getSearch) * 1000 : 0})() : useTimeOut
