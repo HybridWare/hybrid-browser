@@ -1,23 +1,20 @@
-export default async function makeVeilid (opts = {}) {
-    const finalOpts = { timeout: 30000, port: 9990, ...opts }
+export default async function makeReticulum (opts = {}) {
+    const finalOpts = { timeout: 30000, port: 11010, ...opts }
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
     const mainAgent = `http://localhost:${mainPort}`
   
-    return async function handleVeil(req) {
+    return async function handleReti(req) {
       try {
-        if(!['HEAD', 'GET', 'POST'].includes(req.method)){
-          throw new Error('method must be HEAD, GET, or POST')
+        if(!['GET', 'POST'].includes(req.method)){
+          throw new Error('method must be GET or POST')
         }
       const mainURL = new URL(req.url)
       delete req.url
       const searchParams = mainURL.searchParams
-      // req.headers.set('X-Iden', mainURL.hostname)
+      req.headers.set('X-Iden', mainURL.hostname)
       const reqHeaders = req.headers
-      if(!req.headers.has('x-iden') && !searchParams.has('x-iden')){
-        throw new Error('must have x-iden header key')
-      }
-      req.headers.set('X-Iden', req.headers.get('x-iden') || searchParams.get('x-iden'))
+      // req.headers.set('X-Iden', mainURL.hostname)
       const useUrl = mainAgent + mainURL.pathname
 
 

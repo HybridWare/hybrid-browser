@@ -51,6 +51,7 @@ const {
   tor,
   iip,
   vid,
+  rns,
   err
 } = Config
 
@@ -80,7 +81,8 @@ export function registerPrivileges () {
     { scheme: 'msg', privileges: P2P_PRIVILEGES },
     { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
     { scheme: 'topic', privileges: P2P_PRIVILEGES },
-    { scheme: 'vid', privileges: CS_PRIVILEGES }
+    { scheme: 'vid', privileges: CS_PRIVILEGES },
+    { scheme: 'rns', privileges: CS_PRIVILEGES }
   ])
 }
 
@@ -116,6 +118,7 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('pubsub')
   app.setAsDefaultProtocolClient('topic')
   app.setAsDefaultProtocolClient('vid')
+  app.setAsDefaultProtocolClient('rns')
 }
 
 export async function setupProtocols (session) {
@@ -267,4 +270,13 @@ export async function setupProtocols (session) {
 
   console.log('registered vid protocol')
   // vid
+
+  // rns
+  const {default: createRnsHandler} = await import('./rns-protocol.js')
+  const rnsHandler = await createRnsHandler(rns, session)
+  sessionProtocol.handle('rns', rnsHandler)
+  globalProtocol.handle('rns', rnsHandler)
+
+  console.log('registered rns protocol')
+  // rns
 }

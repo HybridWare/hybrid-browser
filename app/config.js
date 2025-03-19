@@ -109,6 +109,9 @@ const Config = RC('hybrid', {
   },
   vid: {
     status: true
+  },
+  rns: {
+    status: true
   }
 })
 
