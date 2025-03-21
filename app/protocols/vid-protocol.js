@@ -1,4 +1,5 @@
 export default async function makeVeilid (opts = {}) {
+    const {Readable} = await import('streamx')
     const finalOpts = { timeout: 30000, port: 9990, ...opts }
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
