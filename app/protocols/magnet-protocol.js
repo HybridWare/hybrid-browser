@@ -43,7 +43,7 @@ export default function(proto){
         const arr = parsed.xt.split(':')
         if(arr[0] === 'urn'){
           if(arr[1] === 'btih' || arr[1] === 'btpk'){
-            return new Response('', {headers: {'Location': `bt://${arr[2]}/`}, status: 308})
+            return new Response(null, {headers: {'Location': `bt://${arr[2]}/`}, status: 308})
           } else {
             throw new Error('must have btih or btpk')
           }
