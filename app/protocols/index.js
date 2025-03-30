@@ -82,7 +82,8 @@ export function registerPrivileges () {
     { scheme: 'pubsub', privileges: P2P_PRIVILEGES },
     { scheme: 'topic', privileges: P2P_PRIVILEGES },
     { scheme: 'vid', privileges: CS_PRIVILEGES },
-    { scheme: 'rns', privileges: CS_PRIVILEGES }
+    { scheme: 'rns', privileges: CS_PRIVILEGES },
+    { scheme: 'magnet', privileges: LOW_PRIVILEGES }
   ])
 }
 
@@ -124,8 +125,8 @@ export function setAsDefaultProtocolClient () {
 export async function setupProtocols (session) {
   const { protocol: sessionProtocol } = session
 
-  const {default: createBrowserHandler} = await import('./browser-protocol.js')
-  const browserProtocolHandler = await createBrowserHandler()
+  const {default: browserProtocolHandler} = await import('./browser-protocol.js')
+  // const browserProtocolHandler = await createBrowserHandler()
   sessionProtocol.handle('hybrid', browserProtocolHandler)
   globalProtocol.handle('hybrid', browserProtocolHandler)
 
@@ -172,13 +173,13 @@ export async function setupProtocols (session) {
   sessionProtocol.handle('bt', btHandler)
   globalProtocol.handle('bt', btHandler)
 
-  const {default: createMagnetHandler} = await import('./magnet-protocol.js')
-  const magnetHandler = await createMagnetHandler()
-  sessionProtocol.handle('magnet', magnetHandler)
-  globalProtocol.handle('magnet', magnetHandler)
-
   console.log('registered bt protocol')
   // bt
+
+  // const {default: createMagnetHandler} = await import('./magnet-protocol.js')
+  // const magnetHandler = await createMagnetHandler()
+  // sessionProtocol.handle('magnet', magnetHandler)
+  // globalProtocol.handle('magnet', magnetHandler)
 
   // ipfs
   const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
@@ -279,4 +280,13 @@ export async function setupProtocols (session) {
 
   console.log('registered rns protocol')
   // rns
+
+  // magnet
+  const {default: createMagnetHandler} = await import('./magnet-protocol.js')
+  const magnetHandler = createMagnetHandler({bt: btHandler, ipfs: ipfsHandler, hyper: hyperHandler, msg: msgHandler, pubsub: pubsubHandler, topic: topicHandler, vid: vidHandler, rns: rnsHandler})
+  sessionProtocol.handle('magnet', magnetHandler)
+  globalProtocol.handle('magnet', magnetHandler)
+
+  console.log('registered magnet protocol')
+  // magnet
 }

@@ -1,48 +1,5 @@
 import { Readable } from 'stream'
-
-const INFO_HASH_MATCH = /^urn:btih:([a-f0-9]{40})$/ig
-const PUBLIC_KEY_MATCH = /^urn:btpk:([a-f0-9]{64})$/ig
-
-export default async function createHandler () {
-  return function magnetHandler (req) {
-    try {
-      const parsed = new URL(req.url)
-
-      const xt = parsed.searchParams.get('xt')
-      const xs = parsed.searchParams.get('xs')
-
-      if (xs) {
-        const match = PUBLIC_KEY_MATCH.exec(xs)
-        if (!match) {
-          return sendError('Magnet has no bittorrent infohash')
-        }
-        const publicKey = match[1]
-        const final = `bt://${publicKey}`
-        sendFinal(final)
-      } else if (xt) {
-        const match = INFO_HASH_MATCH.exec(xt)
-        if (!match) {
-          return sendError('Magnet has no bittorrent infohash')
-        }
-        const infohash = match[1]
-        const final = `bt://${infohash}/`
-        sendFinal(final)
-      } else {
-        return sendError('Magnet link has no `xt` or `xs` parameter')
-      }
-    } catch (e) {
-      sendError(e.stack)
-    }
-
-    function sendFinal (Location) {
-      return new Response(intoStream(''), {status: 308, headers: {Location}})
-    }
-
-    function sendError (message) {
-      return new Response(intoStream(message), {status: 400, headers: {'content-type': 'text/html'}})
-    }
-  }
-}
+import magnet from 'magnet-uri'
 
 function intoStream (data) {
   return new Readable({
@@ -51,4 +8,60 @@ function intoStream (data) {
       this.push(null)
     }
   })
+}
+
+function parseQuery(data){
+  if(data){
+    let str = '?'
+    const arr = data.split(',')
+    for(const i of arr){
+      const kv = i.split(':')
+      str = str + kv[0] + '=' + kv[1] + '&'
+    }
+    return str
+  } else {
+    return ''
+  }
+}
+
+function parseHeader(data, session){
+  if(data){
+    const arr = data.split(',')
+    for(const i of arr){
+      const kv = i.split(':')
+      session.headers.set(kv[0], kv[1])
+    }
+  }
+}
+
+export default function(proto){
+  const obj = proto
+  return async function(session){
+    try {
+      const parsed = magnet(session.url)
+      if(parsed.xt && session.method === 'GET'){
+        const arr = parsed.xt.split(':')
+        if(arr[0] === 'urn'){
+          if(arr[1] === 'btih' || arr[1] === 'btpk'){
+            return new Response('', {headers: {'Location': `bt://${arr[2]}/`}, status: 308})
+          } else {
+            throw new Error('must have btih or btpk')
+          }
+        } else {
+          throw new Error('must have urn')
+        }
+      } else {
+        delete session.url
+        parsed.xn = parsed.xn || '/'
+        parseHeader(parsed.xo, session)
+        if(obj[parsed.xp]){
+          return await obj[parsed.xp](new Request(`${parsed.xp}://${parsed.xh || parsed.xk}${parsed.xn}${parseQuery(parsed.xq)}`, session))
+        } else {
+          throw new Error('unknown scheme')
+        }
+      }
+    } catch (error) {
+      return new Response(intoStream(error.stack), {status: 500, statusText: error.message})
+    }
+  }
 }

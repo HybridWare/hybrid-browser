@@ -12,9 +12,9 @@ export default async function makeReticulum (opts = {}) {
       const mainURL = new URL(req.url)
       delete req.url
       const searchParams = mainURL.searchParams
-      req.headers.set('X-Iden', mainURL.hostname)
+      req.headers.set('X-id', mainURL.hostname)
       const reqHeaders = req.headers
-      // req.headers.set('X-Iden', mainURL.hostname)
+      // req.headers.set('X-id', mainURL.hostname)
       const useUrl = mainAgent + mainURL.pathname
 
 

@@ -13,12 +13,12 @@ export default async function makeVeilid (opts = {}) {
       const mainURL = new URL(req.url)
       delete req.url
       const searchParams = mainURL.searchParams
-      // req.headers.set('X-Iden', mainURL.hostname)
+      // req.headers.set('X-id', mainURL.hostname)
       const reqHeaders = req.headers
-      if(!req.headers.has('x-iden') && !searchParams.has('x-iden')){
-        throw new Error('must have x-iden header key')
+      if(!req.headers.has('x-id') && !searchParams.has('x-id')){
+        throw new Error('must have x-id header key')
       }
-      req.headers.set('X-Iden', req.headers.get('x-iden') || searchParams.get('x-iden'))
+      req.headers.set('X-id', req.headers.get('x-id') || searchParams.get('x-id'))
       const useUrl = mainAgent + mainURL.pathname
 
 
