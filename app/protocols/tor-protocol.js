@@ -2,12 +2,12 @@ export default async function makeOnion (opt = {}) {
     const { default: nodeFetch } = await import('node-fetch')
     const {default: detect} = await import('detect-port')
     const {SocksProxyAgent} = await import('socks-proxy-agent')
-    const finalOpts = { timeout: 30000, port: 9050, ...opt }
+    const finalOpts = { timeout: 30000, port: 9050, scheme: 'socks5:', hostname: 'localhost', ...opt }
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
     const socksh = finalOpts.scheme
     const mainHost = finalOpts.hostname
-    const mainAgent = new SocksProxyAgent(`${socksh || 'socks5:'}//${mainHost || 'localhost'}${mainPort ? `:${mainPort}` : ''}`)
+    const mainAgent = new SocksProxyAgent(`${socksh}//${mainHost}:${mainPort}`)
   
   function useAgent(_parsedURL) {
       if (_parsedURL.protocol === 'http:' || _parsedURL.protocol === 'https:') {

@@ -3,12 +3,12 @@ export default async function makeGarlic (opts = {}) {
     const {default: detect} = await import('detect-port')
     const {SocksProxyAgent} = await import('socks-proxy-agent')
     const {HttpProxyAgent} = await import('http-proxy-agent')
-    const finalOpts = { timeout: 30000, port: 4444, ...opts }
+    const finalOpts = { timeout: 30000, port: 4444, scheme: 'http:', hostname: 'localhost', ...opts }
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
-    const socksh = finalOpts.scheme
+    const httpOrSocks = finalOpts.scheme
     const mainHost = finalOpts.hostname
-    const mainAgent = finalOpts.socks ? new SocksProxyAgent(`${socksh || 'socks5:'}//${mainHost || 'localhost'}${mainPort ? `:${mainPort}` : ''}`) : new HttpProxyAgent(`http://${mainHost || 'localhost'}${mainPort ? `:${mainPort}` : ''}`)
+    const mainAgent = httpOrSocks === 'http:' || httpOrSocks === 'https:' ? new HttpProxyAgent(`${httpOrSocks}//${mainHost}:${mainPort}`) : new SocksProxyAgent(`${httpOrSocks}//${mainHost}:${mainPort}`)
   
   function useAgent(_parsedURL) {
     if (_parsedURL.protocol === 'http:' || _parsedURL.protocol === 'https:') {
