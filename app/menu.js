@@ -18,6 +18,7 @@ export function registerMenu (actions) {
     OpenExtensionFolder,
     OpenDataFolder,
     EditConfigFile,
+    OpenConfigFile,
     CreateBookmark
   } = actions
 
@@ -127,6 +128,7 @@ export function registerMenu (actions) {
         OpenExtensionFolder,
         OpenDataFolder,
         EditConfigFile,
+        OpenConfigFile,
         SetAsDefault,
         SetAsDefaultMagnet
       ]

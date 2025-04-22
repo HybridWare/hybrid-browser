@@ -6,7 +6,8 @@ export default async function makeGarlic (opts = {}) {
     const finalOpts = { timeout: 30000, port: 4444, ...opts }
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
-    const mainAgent = finalOpts.socks ? new SocksProxyAgent(`socks5h://127.0.0.1:${mainPort}`) : new HttpProxyAgent(`http://127.0.0.1:${mainPort}`)
+    const socksh = finalOpts.scheme
+    const mainAgent = finalOpts.socks ? new SocksProxyAgent(`${socksh || 'socks5:'}//127.0.0.1:${mainPort}`) : new HttpProxyAgent(`http://127.0.0.1:${mainPort}`)
   
   function useAgent(_parsedURL) {
     if (_parsedURL.protocol === 'http:' || _parsedURL.protocol === 'https:') {

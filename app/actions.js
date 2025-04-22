@@ -4,9 +4,12 @@ import path from 'path'
 import createDesktopShortcut from 'create-desktop-shortcuts'
 import dataUriToBuffer from 'data-uri-to-buffer'
 import sanitize from 'sanitize-filename'
+import os from 'os'
 
 import Config from './config.js'
 const { accelerators, extensions, appPath } = Config
+
+const DEFAULT_CONFIG_FILE_NAME = '.hybridrc'
 
 const FOCUS_URL_BAR_SCRIPT = `
 document.getElementById('search').showInput()
@@ -90,6 +93,11 @@ export function createActions ({
       label: 'Edit Configuration File',
       accelerator: accelerators.EditConfigFile,
       click: onEditConfigFile
+    },
+    OpenConfigFile: {
+      label: 'Open Configuration File',
+      accelerator: accelerators.OpenConfigFile,
+      click: onOpenConfigFile
     },
     CreateBookmark: {
       label: 'Create Bookmark',
@@ -184,6 +192,16 @@ export function createActions ({
 
   async function onEditConfigFile () {
     await createWindow('hybrid://settings')
+  }
+
+  async function onOpenConfigFile () {
+    const file = path.join(os.homedir(), DEFAULT_CONFIG_FILE_NAME)
+
+    const exists = await fs.pathExists(file)
+
+    if (!exists) await fs.writeJson(file, {})
+
+    await shell.openPath(file)
   }
 
   async function onCreateBookmark (event, focusedWindow) {

@@ -40,6 +40,7 @@ const Config = RC('hybrid', {
     LearnMore: null,
     OpenExtensionsFolder: null,
     EditConfigFile: 'CommandOrControl+.',
+    OpenConfigFile: 'CommandOrControl+,',
     CreateBookmark: 'CommandOrControl+D'
   },
 
