@@ -6,7 +6,8 @@ export default async function makeOnion (opt = {}) {
     const mainPort = finalOpts.port
     const useTimeOut = finalOpts.timeout
     const socksh = finalOpts.scheme
-    const mainAgent = new SocksProxyAgent(`${socksh || 'socks5:'}//127.0.0.1:${mainPort}`)
+    const mainHost = finalOpts.hostname
+    const mainAgent = new SocksProxyAgent(`${socksh || 'socks5:'}//${mainHost || 'localhost'}${mainPort ? `:${mainPort}` : ''}`)
   
   function useAgent(_parsedURL) {
       if (_parsedURL.protocol === 'http:' || _parsedURL.protocol === 'https:') {
