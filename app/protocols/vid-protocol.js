@@ -1,5 +1,5 @@
 export default async function makeVeilid (opts = {}) {
-    const {hex2arr} = await import('uint8-util')
+    const {hex2arr, arr2hex, arr2text} = await import('uint8-util')
     const path = await import('path')
     const {Readable} = await import('streamx')
     const finalOpts = { timeout: 30000, port: 9990, ...opts }
@@ -18,7 +18,7 @@ export default async function makeVeilid (opts = {}) {
       // req.headers.set('X-id', mainURL.hostname)
       const reqHeaders = req.headers
       if(/^[0-9a-fA-F]+$/.test(mainURL.hostname)){
-        req.headers.set('X-id', hex2arr(mainURL.hostname).toString('utf-8'))
+        req.headers.set('X-id', arr2text(hex2arr(mainURL.hostname)))
       } else if(req.headers.has('x-id') || searchParams.has('x-id')){
         req.headers.set('X-id', req.headers.get('x-id') || searchParams.get('x-id'))
       } else {
