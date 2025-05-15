@@ -1,4 +1,5 @@
 export default async function makeVeilid (opts = {}) {
+    const {hex2arr} = await import('uint8-util')
     const {Readable} = await import('streamx')
     const finalOpts = { timeout: 30000, port: 9990, ...opts }
     const mainPort = finalOpts.port
@@ -15,10 +16,13 @@ export default async function makeVeilid (opts = {}) {
       const searchParams = mainURL.searchParams
       // req.headers.set('X-id', mainURL.hostname)
       const reqHeaders = req.headers
-      if(!req.headers.has('x-id') && !searchParams.has('x-id')){
+      if(/^[0-9a-fA-F]+$/.test(mainURL.hostname)){
+        req.headers.set('X-id', hex2arr(mainURL.hostname).toString('utf-8'))
+      } else if(req.headers.has('x-id') || searchParams.has('x-id')){
+        req.headers.set('X-id', req.headers.get('x-id') || searchParams.get('x-id'))
+      } else {
         throw new Error('must have x-id header key')
       }
-      req.headers.set('X-id', req.headers.get('x-id') || searchParams.get('x-id'))
       const useUrl = mainAgent + mainURL.pathname
 
 
