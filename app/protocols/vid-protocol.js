@@ -1,5 +1,6 @@
 export default async function makeVeilid (opts = {}) {
     const {hex2arr} = await import('uint8-util')
+    const path = await import('path')
     const {Readable} = await import('streamx')
     const finalOpts = { timeout: 30000, port: 9990, ...opts }
     const mainPort = finalOpts.port
@@ -23,7 +24,7 @@ export default async function makeVeilid (opts = {}) {
       } else {
         throw new Error('must have x-id header key')
       }
-      const useUrl = mainAgent + mainURL.pathname
+      const useUrl = path.join(mainAgent, mainURL.pathname).replace(/\\/g, '/')
 
 
     const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? (() => {const getHead = reqHeaders.get('X-timer');const getSearch = searchParams.get('x-timer');reqHeaders.delete('x-timer');searchParams.delete('x-timer');getHead !== '0' || getSearch !== '0' ? Number(getHead || getSearch) * 1000 : 0})() : useTimeOut
