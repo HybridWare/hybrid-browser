@@ -52,7 +52,8 @@ const {
   iip,
   vid,
   rns,
-  err
+  err,
+  web3
 } = Config
 
 const onCloseHandlers = []
@@ -83,7 +84,8 @@ export function registerPrivileges () {
     { scheme: 'topic', privileges: P2P_PRIVILEGES },
     { scheme: 'vid', privileges: CS_PRIVILEGES },
     { scheme: 'rns', privileges: CS_PRIVILEGES },
-    { scheme: 'magnet', privileges: LOW_PRIVILEGES }
+    { scheme: 'magnet', privileges: LOW_PRIVILEGES },
+    { scheme: 'web3', privileges: P2P_PRIVILEGES }
   ])
 }
 
@@ -120,6 +122,7 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('topic')
   app.setAsDefaultProtocolClient('vid')
   app.setAsDefaultProtocolClient('rns')
+  app.setAsDefaultProtocolClient('web3')
 }
 
 export async function setupProtocols (session) {
@@ -289,4 +292,13 @@ export async function setupProtocols (session) {
 
   console.log('registered magnet protocol')
   // magnet
+
+  // web3
+  const {default: createWeb3Handler} = await import('./web3-protocol.js')
+  const web3Handler = await createWeb3Handler(web3, session)
+  sessionProtocol.handle('web3', web3Handler)
+  globalProtocol.handle('web3', web3Handler)
+
+  console.log('registered web3 protocol')
+  // web3
 }

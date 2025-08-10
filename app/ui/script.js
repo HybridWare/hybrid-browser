@@ -45,8 +45,9 @@ search.addEventListener('forward', () => {
   currentWindow.goForward()
 })
 
-search.addEventListener('home', () => {
-  navigateTo('hybrid://welcome').catch(console.error)
+search.addEventListener('up', () => {
+  const next = search.src.endsWith('/') ? '../' : './'
+  currentWindow.loadURL(new URL(next, search.src).href).catch(console.error)
 })
 
 search.addEventListener('navigate', ({ detail }) => {
@@ -63,9 +64,14 @@ search.addEventListener('unfocus', async () => {
 search.addEventListener('search', async ({ detail }) => {
   const { query, searchID } = detail
 
-  const results = await currentWindow.searchHistory(query, searchID)
+  search.setSearchResults([], query, searchID)
+  for await (const result of currentWindow.searchHistory(query)) {
+    search.addSearchResult(result)
+  }
+})
 
-  search.setSearchResults(results, query, searchID)
+search.addEventListener('home', () => {
+  navigateTo('hybrid://welcome').catch(console.error)
 })
 
 webview.addEventListener('focus', () => {
@@ -87,9 +93,11 @@ currentWindow.on('page-title-updated', (title) => {
 })
 currentWindow.on('enter-html-full-screen', () => {
   if (!rawFrame) nav.classList.toggle('hidden', true)
+  webview.emitResize()
 })
 currentWindow.on('leave-html-full-screen', () => {
   if (!rawFrame) nav.classList.toggle('hidden', false)
+  webview.emitResize()
 })
 currentWindow.on('update-target-url', async (url) => {
   // if(search.showTarget){
@@ -98,6 +106,14 @@ currentWindow.on('update-target-url', async (url) => {
 })
 currentWindow.on('browser-actions-changed', () => {
   actions.renderLatest()
+})
+currentWindow.on('enter-full-screen', () => {
+  if (!rawFrame) nav.classList.toggle('hidden', true)
+  webview.emitResize()
+})
+currentWindow.on('leave-full-screen', () => {
+  if (!rawFrame) nav.classList.toggle('hidden', false)
+  webview.emitResize()
 })
 
 find.addEventListener('next', ({ detail }) => {

@@ -4,7 +4,7 @@ import path from 'path'
 import createDesktopShortcut from 'create-desktop-shortcuts'
 import dataUriToBuffer from 'data-uri-to-buffer'
 import sanitize from 'sanitize-filename'
-import os from 'os'
+import * as history from './history.js'
 
 import Config from './config.js'
 const { accelerators, extensions, appPath } = Config
@@ -28,6 +28,11 @@ export function createActions ({
       label: 'Open Dev Tools',
       accelerator: accelerators.OpenDevTools,
       click: onOpenDevTools
+    },
+    ViewHistory: {
+      label: 'View History',
+      accelerator: accelerators.ViewHistory,
+      click: onViewHistory
     },
     NewWindow: {
       label: 'New Window',
@@ -194,14 +199,8 @@ export function createActions ({
     await createWindow('hybrid://settings')
   }
 
-  async function onOpenConfigFile () {
-    const file = path.join(os.homedir(), DEFAULT_CONFIG_FILE_NAME)
-
-    const exists = await fs.pathExists(file)
-
-    if (!exists) await fs.writeJson(file, {})
-
-    await shell.openPath(file)
+  async function onViewHistory () {
+    await createWindow(history.getViewPage())
   }
 
   async function onCreateBookmark (event, focusedWindow) {
@@ -257,6 +256,16 @@ export function createActions ({
         createShortcut()
       }
     }
+  }
+
+  async function onOpenConfigFile () {
+    const file = path.join(os.homedir(), DEFAULT_CONFIG_FILE_NAME)
+
+    const exists = await fs.pathExists(file)
+
+    if (!exists) await fs.writeJson(file, {})
+
+    await shell.openPath(file)
   }
 }
 

@@ -14,11 +14,6 @@ import delay from 'delay'
 
 import Config from './config.js'
 
-const {
-  defaultPage,
-  autoHideMenuBar: DEFAULT_AUTO_HIDE_MENU_BAR
-} = Config
-
 const IS_DEBUG = process.env.NODE_ENV === 'debug'
 
 const __dirname = fileURLToPath(new URL('./', import.meta.url))
@@ -47,7 +42,8 @@ const WINDOW_METHODS = [
   'findInPage',
   'stopFindInPage',
   'setBounds',
-  'searchHistory',
+  'searchHistoryStart',
+  'searchHistoryNext',
   'listExtensionActions',
   'clickExtensionAction'
 ]
@@ -72,7 +68,7 @@ async function DEFAULT_LIST_ACTIONS () {
 const SHOW_DELAY = 200
 
 // Used to only show one window at a time
-const showQueue = new PQueue({concurrency: 1})
+const showQueue = new PQueue({ concurrency: 1 })
 
 export class WindowManager extends EventEmitter {
   constructor ({
@@ -102,7 +98,7 @@ export class WindowManager extends EventEmitter {
       ...opts
     })
 
-    console.log('created window', window.id)
+    if (IS_DEBUG) console.log('created window', window.id)
     this.windows.add(window)
     window.once('close', () => {
       this.windows.delete(window)
@@ -231,8 +227,9 @@ export class WindowManager extends EventEmitter {
 }
 
 export class Window extends EventEmitter {
+  #searchIterator = null
   constructor ({
-    url = defaultPage,
+    url = Config.defaultPage,
     popup = false,
     rawFrame = false || popup,
     autoResize = false || popup,
@@ -241,7 +238,7 @@ export class Window extends EventEmitter {
     onSearch,
     listActions,
     view,
-    autoHideMenuBar = DEFAULT_AUTO_HIDE_MENU_BAR || popup,
+    autoHideMenuBar = Config.autoHideMenuBar || popup,
     ...opts
   } = {}) {
     super()
@@ -268,6 +265,7 @@ export class Window extends EventEmitter {
         partition: 'persist:web-content',
         defaultEncoding: 'utf-8',
         nodeIntegration: false,
+        nodeIntegrationInSubFrames: true,
         sandbox: true,
         webviewTag: false,
         contextIsolation: true,
@@ -330,16 +328,23 @@ export class Window extends EventEmitter {
     this.web.on('update-target-url', (event, url) => {
       this.send('update-target-url', url)
     })
+    this.window.on('enter-full-screen', () => {
+      this.send('enter-full-screen')
+    })
+    this.window.on('leave-full-screen', () => {
+      this.send('leave-full-screen')
+    })
 
     this.web.on('dom-ready', async () => {
       if (this.web.getURL() === 'hybrid://settings') {
         this.web.executeJavaScript(`window.onSettings(${JSON.stringify(Config)})`)
       }
-      const hasStyles = await this.web.executeJavaScript(HAS_SHEET)
-      console.log({ hasStyles })
+      const hasStyles = await this.web.executeJavaScript(HAS_SHEET, true).catch(() => false) // If we error out checking styles, try it anyway
       if (!hasStyles) {
         const style = await getDefaultStylesheet(this.web)
-        await this.web.insertCSS(style)
+        await this.web.insertCSS(style, {
+          cssOrigin: 'user'
+        })
       }
     })
 
@@ -410,8 +415,20 @@ export class Window extends EventEmitter {
     return this.web.stopFindInPage('clearSelection')
   }
 
-  async searchHistory (...args) {
-    return this.onSearch(...args)
+  async searchHistoryStart (...args) {
+    this.#searchIterator = this.onSearch(...args)
+  }
+
+  async searchHistoryNext () {
+    if (!this.#searchIterator) return { done: true, value: null }
+    try {
+      const { done, value } = await this.#searchIterator.next()
+      if (done) this.#searchIterator = null
+      return { done, value }
+    } catch (e) {
+      console.error('Error getting next history item')
+      throw e
+    }
   }
 
   async setBounds (rect) {

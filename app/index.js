@@ -10,8 +10,8 @@ import { WindowManager } from './window.js'
 import { createExtensions } from './extensions/index.js'
 import * as history from './history.js'
 import { version } from './version.js'
-import * as config from './config.js'
 import * as llm from './llm.js'
+import * as config from './config.js'
 
 const IS_DEBUG = process.env.NODE_ENV === 'debug'
 
@@ -129,7 +129,6 @@ app.on('before-quit', () => {
 })
 
 app.on('window-all-closed', () => {})
-
 async function onready () {
   console.log('Building tray and context menu')
   const appIcon = new Tray(LOGO_FILE)
@@ -150,6 +149,8 @@ async function onready () {
 
   llm.addPreloads(webSession)
   config.addPreloads(webSession)
+
+  llm.setCreateWindow(createWindow)
 
   const electronSection = /Electron.+ /i
   const existingAgent = webSession.getUserAgent()
@@ -190,10 +191,19 @@ async function onready () {
   // Register all extensions in the extensions folder from disk
   await extensions.registerAll()
 
+  const historyExtension = await extensions.byName('hybrid-history')
+
   // TODO: Better error handling when the extension doesn't exist?
   history.setGetBackgroundPage(() => {
     return extensions.getBackgroundPageByName('hybrid-history')
   })
+
+  history.setViewPage(
+    new URL(
+      historyExtension.manifest.options_page,
+      historyExtension.url
+    ).href
+  )
 
   console.log('Opening saved windows')
 

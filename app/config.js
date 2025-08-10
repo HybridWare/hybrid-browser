@@ -3,8 +3,11 @@ import RC from 'rc'
 
 import os from 'node:os'
 import path from 'node:path'
-import url from 'node:url'
 import { readFile, writeFile } from 'node:fs/promises'
+import url from 'node:url'
+import { getDefaultChainList } from 'web3protocol/chains'
+
+const __dirname = url.fileURLToPath(new URL('./', import.meta.url))
 
 const USER_DATA = app.getPath('userData')
 const DEFAULT_EXTENSIONS_DIR = path.join(USER_DATA, 'extensions')
@@ -26,7 +29,7 @@ const Config = RC('hybrid', {
     // Uncomment this to use OpenAI instead
     // baseURL: 'https://api.openai.com/v1/'
     apiKey: 'ollama',
-    model: 'qwen2.5-coder:7b-instruct-q4_K_M'
+    model: 'qwen2.5-coder:3b'
   },
   accelerators: {
     OpenDevTools: 'CommandOrControl+Shift+I',
@@ -113,13 +116,17 @@ const Config = RC('hybrid', {
   },
   rns: {
     status: true
-  }
+  },
+  web3: {
+    chainList: getDefaultChainList(),
+    multipleRpcMode: 'fallback'
+  },
 })
 
 export default Config
 
 export function addPreloads (session) {
-  const preloadPath = path.join(url.fileURLToPath(new URL('./', import.meta.url)), 'settings-preload.js')
+  const preloadPath = path.join(__dirname, 'settings-preload.js')
   const preloads = session.getPreloads()
   preloads.push(preloadPath)
   session.setPreloads(preloads)

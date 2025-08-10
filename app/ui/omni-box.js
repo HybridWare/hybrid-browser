@@ -15,6 +15,7 @@ class OmniBox extends HTMLElement {
     this.innerHTML = ` 
       <section class="omni-box-header">
         <button class="hidden omni-box-button omni-box-back" title="Go back in history">⬅</button>
+        <button class="hidden omni-box-button omni-box-up" title="Go up one directory">⬆</button>
         <button class="hidden omni-box-button omni-box-forward" title="Go forward in history">➡</button>
         <button class="omni-box-button omni-box-home" title="Go to the homepage">⊡</button>
         <form class="omni-box-form">
@@ -26,6 +27,7 @@ class OmniBox extends HTMLElement {
     `
     this.backButton = this.$('.omni-box-back')
     this.forwardButton = this.$('.omni-box-forward')
+    this.upButton = this.$('.omni-box-up')
     this.form = this.$('.omni-box-form')
     this.input = this.$('.omni-box-input')
     this.targetUrl = this.$('.omni-box-target-input')
@@ -96,6 +98,9 @@ class OmniBox extends HTMLElement {
     })
     this.forwardButton.addEventListener('click', () => {
       this.dispatchEvent(new CustomEvent('forward'))
+    })
+    this.upButton.addEventListener('click', () => {
+      this.dispatchEvent(new CustomEvent('up'))
     })
     this.homeButton.addEventListener('click', () => {
       this.dispatchEvent(new CustomEvent('home'))
@@ -181,7 +186,6 @@ class OmniBox extends HTMLElement {
     if (this.lastSearch !== searchID) {
       return console.debug('Urlbar changed since query finished', this.lastSearch, searchID, query)
     }
-
     const finalItems = []
 
     if (isURL(query)) {
@@ -203,11 +207,14 @@ class OmniBox extends HTMLElement {
       .map(({ title, url }) => this.makeNavItem(url, `${title} - ${url}`))
     )
 
-    for (const item of finalItems) {
-      this.options.appendChild(item)
-    }
+    this.options.replaceChildren(...finalItems)
 
     this.getSelected().setAttribute('data-selected', 'selected')
+  }
+
+  addSearchResult ({ title, url }) {
+    const item = this.makeNavItem(url, `${title} - ${url}`)
+    this.options.appendChild(item)
   }
 
   makeNavItem (url, text) {
@@ -231,7 +238,12 @@ class OmniBox extends HTMLElement {
   attributeChangedCallback (name, oldValue, newValue) {
     if (name === 'src') {
       this.input.value = newValue
-      const noFocus = window.searchParams.get('noFocus') === 'true'
+      
+      const { pathname } = new URL(newValue)
+      const hasUpperFolders = pathname !== '/'
+      this.upButton.classList.toggle('hidden', !hasUpperFolders)
+
+      const noFocus = (new URL(window.location.href).searchParams).get('noFocus') === 'true'
       if (noFocus) {
         return
       }
@@ -292,7 +304,7 @@ function makeHttps (query) {
 }
 
 function makeDuckDuckGo (query) {
-  return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`
+  return `https://duckduckgo.com/?ia=web&q=${encodeURIComponent(query)}`
 }
 
 function isURL (string) {
