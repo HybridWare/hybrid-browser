@@ -68,7 +68,7 @@ export default async function makeIPFSDBFetch (opts = {}) {
         } else {
           const arr = []
           for await (const record of odb.iter(useOpt)){
-            arr.push(record)
+            arr.push(record.value)
           }
           return new Response(JSON.stringify(arr), {status: 200, headers: {...mainHeaders, 'Content-Type': 'application/json; charset=UTF-8'}})
         }
