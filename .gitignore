@@ -136,3 +136,6 @@ app/version.js
 
 # This gets generated when I open in a Container
 .devcontainer
+
+# orbitdb directory
+orbitdb/
