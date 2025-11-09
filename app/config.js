@@ -88,9 +88,6 @@ const Config = RC('hybrid', {
     status: true,
     block: true
   },
-  oui: {
-    status: true
-  },
 
   gemini: {
     status: true
@@ -120,7 +117,7 @@ const Config = RC('hybrid', {
   web3: {
     chainList: getDefaultChainList(),
     multipleRpcMode: 'fallback'
-  },
+  }
 })
 
 export default Config

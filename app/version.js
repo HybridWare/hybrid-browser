@@ -3,12 +3,16 @@ export const name = 'hybrid-browser'
 export const version = '3.0.5'
 export const dependencies = {
   "@chainsafe/libp2p-gossipsub": "^14.1.0",
+  "@chainsafe/libp2p-noise": "^16.1.0",
+  "@chainsafe/libp2p-quic": "^1.1.1",
   "@derhuerst/gemini": "^2.0.0",
   "@helia/unixfs": "^4.0.2",
-  "@libp2p/bootstrap": "^11.0.32",
+  "@libp2p/autonat": "^2.0.28",
   "@libp2p/identify": "^3.0.15",
   "@libp2p/kad-dht": "^14.2.0",
-  "@libp2p/tcp": "^10.1.8",
+  "@libp2p/mdns": "^11.0.32",
+  "@libp2p/pubsub-peer-discovery": "^11.0.1",
+  "@libp2p/upnp-nat": "^3.1.11",
   "abort-controller": "^3.0.0",
   "blockstore-fs": "^2.0.2",
   "create-desktop-shortcuts": "^1.11.0",
@@ -25,6 +29,7 @@ export const dependencies = {
   "http-proxy-agent": "^7.0.2",
   "hyper-sdk": "^5.1.0",
   "ipfs-pubsub-room": "github:ducksandgoats/ipfs-pubsub-room",
+  "magnet-uri": "^7.0.7",
   "mime": "^4.0.6",
   "multiformats": "^9.9.0",
   "node-fetch": "^3.3.2",
@@ -38,5 +43,6 @@ export const dependencies = {
   "streamx": "^2.22.0",
   "torrentz": "^20.0.4",
   "uint8-util": "^2.2.5",
+  "web3protocol": "^0.6.2",
   "whatwg-mimetype": "github:jsdom/whatwg-mimetype"
 }

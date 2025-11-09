@@ -44,7 +44,6 @@ const {
   ipfs,
   hyper,
   bt,
-  oui,
   gemini,
   gopher,
   hhttp,
@@ -68,9 +67,9 @@ export function registerPrivileges () {
     { scheme: 'bt', privileges: P2P_PRIVILEGES },
     { scheme: 'magnet', privileges: LOW_PRIVILEGES },
     { scheme: 'ipfs', privileges: P2P_PRIVILEGES },
+    { scheme: 'ipfsdb', privileges: P2P_PRIVILEGES },
     { scheme: 'hyper', privileges: P2P_PRIVILEGES },
-    { scheme: 'oui', privileges: CS_PRIVILEGES },
-    { scheme: 'ouis', privileges: P2P_PRIVILEGES },
+    { scheme: 'hyperdb', privileges: P2P_PRIVILEGES },
     { scheme: 'gemini', privileges: P2P_PRIVILEGES },
     { scheme: 'gopher', privileges: CS_PRIVILEGES },
     { scheme: 'hhttp', privileges: CS_PRIVILEGES },
@@ -84,7 +83,6 @@ export function registerPrivileges () {
     { scheme: 'topic', privileges: P2P_PRIVILEGES },
     { scheme: 'vid', privileges: CS_PRIVILEGES },
     { scheme: 'rns', privileges: CS_PRIVILEGES },
-    { scheme: 'magnet', privileges: LOW_PRIVILEGES },
     { scheme: 'web3', privileges: P2P_PRIVILEGES }
   ])
 }
@@ -106,9 +104,9 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('hybrid')
   app.setAsDefaultProtocolClient('bt')
   app.setAsDefaultProtocolClient('ipfs')
+  app.setAsDefaultProtocolClient('ipfsdb')
   app.setAsDefaultProtocolClient('hyper')
-  app.setAsDefaultProtocolClient('oui')
-  app.setAsDefaultProtocolClient('ouis')
+  app.setAsDefaultProtocolClient('hyperdb')
   app.setAsDefaultProtocolClient('gemini')
   app.setAsDefaultProtocolClient('gopher')
   app.setAsDefaultProtocolClient('hhttp')
@@ -136,7 +134,7 @@ export async function setupProtocols (session) {
   console.log('registered hybrid protocol')
 
   const torrentz = await (async () => {const {default: Torrentz} = await import('torrentz');return new Torrentz(bt);})()
-  const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const { pubsubPeerDiscovery } = await import('@libp2p/pubsub-peer-discovery');const {quic} = await import('@chainsafe/libp2p-quic');const { uPnPNAT } = await import('@libp2p/upnp-nat');const { mdns } = await import('@libp2p/mdns');const {noise} = await import('@chainsafe/libp2p-noise');const { autoNAT } = await import('@libp2p/autonat');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {transports: [quic()], addresses: {listen: ['/ip4/0.0.0.0/udp/0/quic-v1']}, connectionEncryption: [noise()], peerDiscovery: [pubsubPeerDiscovery(), mdns()], services: {upnpNAT: uPnPNAT(), autoNAT: autoNAT(), dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});})()
+  const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const { pubsubPeerDiscovery } = await import('@libp2p/pubsub-peer-discovery');const { uPnPNAT } = await import('@libp2p/upnp-nat');const { mdns } = await import('@libp2p/mdns');const {noise} = await import('@chainsafe/libp2p-noise');const { autoNAT } = await import('@libp2p/autonat');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {connectionEncryption: [noise()], peerDiscovery: [pubsubPeerDiscovery(), mdns()], services: {upnpNAT: uPnPNAT(), autoNAT: autoNAT(), dht: kadDHT(), pubsub: gossipsub({allowPublishToZeroTopicPeers: true}), identify: identify()}}});})()
   const sdk = await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})()
 
   // msg
@@ -204,16 +202,25 @@ export async function setupProtocols (session) {
   console.log('registered hyper protocol')
   // hyper
 
-  // oui
-  const {default: createOuiHandler} = await import('./oui-protocol.js')
-  const ouiHandler = await createOuiHandler(oui, session)
-  sessionProtocol.handle('oui', ouiHandler)
-  globalProtocol.handle('oui', ouiHandler)
-  sessionProtocol.handle('ouis', ouiHandler)
-  globalProtocol.handle('ouis', ouiHandler)
+  // ipfsdb
+  const {default: makeIPFSDBFetch} = await import('./ipfsdb-protocol.js')
+  const { handler: handlerIPFSDB, close: closeIPFSDB} = await makeIPFSDBFetch({...ipfs, err, helia}, session)
+  onCloseHandlers.push(closeIPFSDB)
+  sessionProtocol.handle('ipfsdb', handlerIPFSDB)
+  globalProtocol.handle('ipfsdb', handlerIPFSDB)
 
-  console.log('registered ouinet protocol')
-  // oui
+  console.log('registered ipfsdb protocol')
+  // ipfsdb
+
+  // hyperdb
+  const {default: makeHYPERDBFetch} = await import('./hyperdb-protocol.js')
+  const { handler: handlerHYPERDB, close: closeHYPERDB} = await makeHYPERDBFetch({...hyper, err, sdk}, session)
+  onCloseHandlers.push(closeHYPERDB)
+  sessionProtocol.handle('hyperdb', handlerHYPERDB)
+  globalProtocol.handle('hyperdb', handlerHYPERDB)
+
+  console.log('registered hyperdb protocol')
+  // hyperdb
 
   // gemini
   const {default: createGeminiHandler} = await import('./gemini-protocol.js')

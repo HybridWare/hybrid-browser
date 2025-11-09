@@ -122,10 +122,10 @@ app.on('activate', () => {
   }
 })
 
-app.on('before-quit', () => {
+app.on('before-quit', async () => {
   windowManager.saveOpened()
   windowManager.close()
-  protocols.close()
+  await protocols.close()
 })
 
 app.on('window-all-closed', () => {})
