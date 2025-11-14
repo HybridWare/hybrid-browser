@@ -216,7 +216,7 @@
     "ipfs-pubsub-room": "github:ducksandgoats/ipfs-pubsub-room",
     "magnet-uri": "^7.0.7",
     "mime": "^4.0.6",
-    "multiformats": "^9.9.0",
+    "multiformats": "^13.4.1",
     "node-fetch": "^3.3.2",
     "p-queue": "^8.1.0",
     "range-parser": "^1.2.1",

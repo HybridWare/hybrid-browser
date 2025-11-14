@@ -5,7 +5,6 @@ export default async function makeHYPERDBFetch (opts = {}) {
     const { Readable, pipelinePromise } = await import('streamx')
     const fse = await import('fs-extra')
     const crypto = await import('crypto')
-    const hostType = '_'
     const mainHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Allow-CSP-From': '*',
@@ -34,9 +33,9 @@ export default async function makeHYPERDBFetch (opts = {}) {
       const core = await sdk.get(title)
       const db = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json' })
       await db.ready()
-      const str = db.key.toString('hex')
-      sdk.join(str, {})
-      addrs.set(str, db)
+      db.strForAddress = db.key.toString('hex')
+      sdk.join(db.strForAddress, {})
+      addrs.set(db.strForAddress, db)
       return db
     }
 
@@ -70,8 +69,7 @@ export default async function makeHYPERDBFetch (opts = {}) {
 
       if(method === 'GET'){
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
-          const test = main.useHost === hostType ? reqHeaders.get('x-address') || searchParams.get('x-address') : main.useHost
-          const db = addrs.has(test) ? addrs.get(test) : await startTitle(test)
+          const db = addrs.has(main.useHost) ? addrs.get(main.useHost) : await startTitle(main.useHost)
           const fullPath = main.usePath.slice(1)
 
           if(fullPath){
@@ -82,11 +80,10 @@ export default async function makeHYPERDBFetch (opts = {}) {
             for await (const record of db.createReadStream(useOpt)){
               arr.push(record.value)
             }
-            return new Response(JSON.stringify(arr), {status: 200, headers: {...mainHeaders, 'Content-Type': 'application/json; charset=UTF-8'}})
+            return new Response(JSON.stringify(arr), {status: 200, headers: {...mainHeaders, 'X-Address': db.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
           }
       } else if(method === 'POST'){
-        const test = main.useHost === hostType ? reqHeaders.get('x-address') || searchParams.get('x-address') : main.useHost
-          const db = addrs.has(test) ? addrs.get(test) : await startTitle(test)
+          const db = addrs.has(main.useHost) ? addrs.get(main.useHost) : await startTitle(main.useHost)
           const fullPath = main.usePath.slice(1)
           const getSaved = reqHeaders.has('content-type') ? reqHeaders.get('content-type').includes('multipart/form-data') ? Object.fromEntries((await session.formData()).entries()) : JSON.parse(await streamToString(body)) : JSON.parse(await streamToString(body))
           const stamp = Date.now()
@@ -94,17 +91,17 @@ export default async function makeHYPERDBFetch (opts = {}) {
           getSaved.stamp = getSaved.stamp || stamp
           const prop = getSaved._id
           await db.put(prop, getSaved)
-          return new Response(JSON.stringify(prop), {status: 200, headers: {...mainHeaders, 'X-Address': db.key.toString('hex'), 'Content-Type': 'application/json; charset=UTF-8'}})
+          return new Response(JSON.stringify(prop), {status: 200, headers: {...mainHeaders, 'X-Address': db.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
       } else if(method === 'DELETE'){
-        const test = main.useHost === hostType ? reqHeaders.get('x-address') || searchParams.get('x-address') : main.useHost
-          const db = addrs.has(test) ? addrs.get(test) : await startTitle(test)
+          const db = addrs.has(main.useHost) ? addrs.get(main.useHost) : await startTitle(main.useHost)
+          const strToUse = db.strForAddress
           const fullPath = main.usePath.slice(1)
           if(fullPath){
             await db.del(fullPath)
           } else {
-            await stopTitle(test, db)
+            await stopTitle(strToUse, db)
           }
-          return new Response(JSON.stringify(fullPath || test), { status: 200, headers: { ...mainHeaders, 'Content-Type': 'application/json; charset=UTF-8' } })
+          return new Response(JSON.stringify(fullPath || test), { status: 200, headers: { ...mainHeaders, 'X-Address': strToUse, 'Content-Type': 'application/json; charset=UTF-8' } })
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
