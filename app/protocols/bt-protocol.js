@@ -246,17 +246,9 @@ export default async function makeBTFetch (opts = {}) {
               return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>Error: could not find the data</p></div></body></html>` : JSON.stringify({error: 'could not find the data'}), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes, 'X-Error': 'could not find the data' } })
             }
         } else if(method === 'POST'){
+          // use the new publishtorrent function which uses the new torrentz echo functions
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
-        
-            if (mid.mainQuery) {
-              if (mid.mainType) {
-                mid.id = true
-                mid.extra = null
-              } else {
-                mid.id = false
-              }
-            }
         
               const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
               const useOpts = {
@@ -265,7 +257,7 @@ export default async function makeBTFetch (opts = {}) {
                   extra: mid.extra
                 }
               const useBody = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? handleFormData(await session.formData()) : body
-              const torrentData = await app.publishTorrent(mid.id, mid.mainPath, useBody, useOpts)
+              const torrentData = await app.publishTorrent(mid.id, {kind: mid.mainType, extra: mid.extra}, mid.mainPath, useBody, useOpts)
               const useHeaders = {}
               for (const test of ['sequence', 'name', 'infohash', 'dir', 'seed', 'secret', 'address']) {
                 if (torrentData[test] || typeof(torrentData[test]) === 'number') {
