@@ -160,16 +160,6 @@ export default async function makeBTFetch (opts = {}) {
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
-          } if(reqHeaders.has('x-echo') || searchParams.has('x-echo')){
-            if(JSON.parse(reqHeaders.get('x-echo') || searchParams.get('x-echo'))){
-                const torrentData = await app.echoTorrent(mid.id, mid.mainPath, {})
-                const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
-                const useLink = `bt://${useIden}/`
-                
-                return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Id': useIden, 'X-Link': useLink}})
-            } else {
-              return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Address': mid.id, 'X-Error': 'must have echo header'}})
-            }
           } else {
             if(isItBlock){
               return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
