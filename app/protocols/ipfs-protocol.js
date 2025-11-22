@@ -81,11 +81,11 @@ export default async function makeIPFSFetch (opts = {}) {
     async function saveFormData(useQuery, useHost, usePath, data, useOpts) {
       const useHostPath = useQuery ? usePath : path.join('/', useHost, usePath)
       let test
-      const src = data.map((datas) => {return {path: path.join(useHostPath, datas.webkitRelativePath || datas.name).replace(/\\/g, '/'), content: Readable.from(datas.stream())}})
+      const src = data.map((datas) => {return {usePath: path.join(usePath, datas.webkitRelativePath || datas.name).replace(/\\/g, '/'), path: path.join(useHostPath, datas.webkitRelativePath || datas.name).replace(/\\/g, '/'), content: Readable.from(datas.stream())}})
       for await (const testing of fileSystem.addAll(src, useOpts)){
         test = testing.cid
       }
-      return src.map((datas) => {return 'ipfs://' + test.toString() + datas.path})
+      return src.map((datas) => {return `ipfs://${test.toString()}${datas.usePath}`})
     }
   
     async function saveFileData(useQuery, useHost, usePath, data, useOpts) {
@@ -95,7 +95,7 @@ export default async function makeIPFSFetch (opts = {}) {
       for await (const testing of fileSystem.addAll(src, useOpts)){
         test = testing.cid
       }
-      return 'ipfs://' + test.toString() + useHostPath
+      return `ipfs://${test.toString()}${usePath}`
     }
 
     // async function dataFromCat(cids, opts){
@@ -273,7 +273,6 @@ export default async function makeIPFSFetch (opts = {}) {
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
       
-          try {
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
           const mainCid = CID.parse(useHost)
           const useCid = await fileSystem.rm(mainCid, usePath.slice(1), { ...useOpt, cidVersion: 1, recursive: true })
@@ -281,9 +280,6 @@ export default async function makeIPFSFetch (opts = {}) {
           const usedLink = `ipfs://${useHost}${usePath}`
           const usingLink = `ipfs://${useCid.toV1().toString()}/`
           return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${JSON.stringify(usingLink)}</div></body></html>` : JSON.stringify(usingLink), { status: 200, headers: { ...mainHeaders, 'Content-Type': mainRes, 'X-Link': usedLink, 'Link': `<${usedLink}>; rel="canonical"` } })
-          } catch (error) {
-            throw error
-          }
       } else {
         return new Response('invalid method', {status: 400, headers: mainHeaders})
       }
