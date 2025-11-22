@@ -240,25 +240,25 @@ export default async function makeBTFetch (opts = {}) {
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
         
-              const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
-              const useOpts = {
-                  ...useOpt,
-                  seq: reqHeaders.has('x-version') || searchParams.has('x-version') ? Number(reqHeaders.get('x-version') || searchParams.get('x-version')) : null,
-                  extra: mid.extra
-                }
-              const useBody = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? handleFormData(await session.formData()) : body
-              const torrentData = await app.publishTorrent(mid.id, {kind: mid.mainType, extra: mid.extra}, mid.mainPath, useBody, useOpts)
-              const useHeaders = {}
-              for (const test of ['sequence', 'name', 'infohash', 'dir', 'seed', 'secret', 'address']) {
-                if (torrentData[test] || typeof(torrentData[test]) === 'number') {
-                  useHeaders['X-' + test.charAt(0).toUpperCase() + test.slice(1)] = torrentData[test]
-                }
+            const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
+            const useOpts = {
+                ...useOpt,
+                seq: reqHeaders.has('x-version') || searchParams.has('x-version') ? Number(reqHeaders.get('x-version') || searchParams.get('x-version')) : null,
+                extra: mid.extra
               }
-              const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
-              useHeaders['X-Iden'] = useIden
-              useHeaders['X-Link'] = `bt://${useIden}${torrentData.path}`
-              useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
-              return new Response(mainReq ? `<html><head><title>${useIden}</title></head><body><div>${Array.isArray(torrentData.saved) ? JSON.stringify(torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')})) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')}</div></body></html>` : JSON.stringify(Array.isArray(torrentData.saved) ? torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')}) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')), { status: 200, headers: { ...mainHeaders, 'Content-Length': String(torrentData.length), 'Content-Type': mainRes, ...useHeaders } })
+            const useBody = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? handleFormData(await session.formData()) : body
+            const torrentData = await app.publishTorrent(mid.id, {kind: mid.mainType, extra: mid.extra}, mid.mainPath, useBody, useOpts)
+            const useHeaders = {}
+            for (const test of ['sequence', 'name', 'infohash', 'dir', 'seed', 'secret', 'address']) {
+              if (torrentData[test] || typeof(torrentData[test]) === 'number') {
+                useHeaders['X-' + test.charAt(0).toUpperCase() + test.slice(1)] = torrentData[test]
+              }
+            }
+            const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
+            useHeaders['X-Iden'] = useIden
+            useHeaders['X-Link'] = `bt://${useIden}${torrentData.path}`
+            useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
+            return new Response(mainReq ? `<html><head><title>${useIden}</title></head><body><div>${Array.isArray(torrentData.saved) ? JSON.stringify(torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')})) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')}</div></body></html>` : JSON.stringify(Array.isArray(torrentData.saved) ? torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')}) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')), { status: 200, headers: { ...mainHeaders, 'Content-Length': String(torrentData.length), 'Content-Type': mainRes, ...useHeaders } })
         } else if(method === 'DELETE'){
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'

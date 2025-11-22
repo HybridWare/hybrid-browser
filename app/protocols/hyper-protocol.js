@@ -209,8 +209,8 @@ export default async function makeHyperFetch (opts = {}) {
           const getSaved = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? await saveFormData(useDrive, useName, main, handleFormData(await session.formData()), useOpt) : await saveFileData(useDrive, useName, main, body, useOpt)
           // const useName = useDrive.key.toString('hex')
           // const saved = 'hyper://' + path.join(useName, main.usePath).replace(/\\/g, '/')
-          const useLink = 'hyper://' + path.join(useName, main.usePath).replace(/\\/g, '/')
-            return new Response(mainReq ? `<html><head><title>Fetch</title></head><body><div>${Array.isArray(getSaved) ? JSON.stringify(getSaved) : getSaved}</div></body></html>` : JSON.stringify(getSaved), {status: 200, headers: {...mainHeaders, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
+          const useLink = `hyper://${path.join(useName, main.usePath).replace(/\\/g, '/')}`
+          return new Response(mainReq ? `<html><head><title>Fetch</title></head><body><div>${Array.isArray(getSaved) ? JSON.stringify(getSaved) : getSaved}</div></body></html>` : JSON.stringify(getSaved), {status: 200, headers: {...mainHeaders, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
       } else if(method === 'DELETE'){
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'

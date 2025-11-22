@@ -263,14 +263,12 @@ export default async function makeIPFSFetch (opts = {}) {
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
       
-          try {
             const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
-            const getSaved = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? await saveFormData(query, useHost, usePath, handleFormData(await session.formData()), { ...useOpt, cidVersion: 1, rawLeaves: false, wrapWithDirectory: true }) : await saveFileData(query, useHost, usePath, body, { ...useOpt, cidVersion: 1, rawLeaves: false, wrapWithDirectory: true })
-            const useLink = `ipfs://${useHost}${usePath}`
+            const getSaved = reqHeaders.has('content-type') && reqHeaders.get('content-type').includes('multipart/form-data') ? await saveFormData(query, useHost, usePath, handleFormData(await session.formData()), { ...useOpt, cidVersion: 1, rawLeaves: false, wrapWithDirectory: query }) : await saveFileData(query, useHost, usePath, body, { ...useOpt, cidVersion: 1, rawLeaves: false, wrapWithDirectory: query })
+            const getLink = Array.isArray(getSaved) ? getSaved[0] : getSaved
+            const getHost = new URL(getLink).hostname
+            const useLink = `ipfs://${getHost}${usePath}`
             return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${Array.isArray(getSaved) ? JSON.stringify(getSaved) : getSaved}</div></body></html>` : JSON.stringify(getSaved), {status: 200, headers: {...mainHeaders, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
-          } catch (error) {
-            throw error
-          }
       } else if(method === 'DELETE'){
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
