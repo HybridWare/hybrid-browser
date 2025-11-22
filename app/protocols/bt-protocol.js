@@ -255,6 +255,7 @@ export default async function makeBTFetch (opts = {}) {
                 }
               }
               const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
+              useHeaders['X-Iden'] = useIden
               useHeaders['X-Link'] = `bt://${useIden}${torrentData.path}`
               useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
               return new Response(mainReq ? `<html><head><title>${useIden}</title></head><body><div>${Array.isArray(torrentData.saved) ? JSON.stringify(torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')})) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')}</div></body></html>` : JSON.stringify(Array.isArray(torrentData.saved) ? torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')}) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')), { status: 200, headers: { ...mainHeaders, 'Content-Length': String(torrentData.length), 'Content-Type': mainRes, ...useHeaders } })
@@ -279,6 +280,7 @@ export default async function makeBTFetch (opts = {}) {
               }
               const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
               const useLink = `bt://${torrentData.id}${torrentData.path}`
+              useHead['X-Iden'] = useIden
               useHead['X-Link'] = `bt://${useIden}${torrentData.path}`
               useHead['Link'] = `<${useHead['X-Link']}>; rel="canonical"`
         

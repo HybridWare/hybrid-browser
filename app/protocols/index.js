@@ -67,9 +67,9 @@ export function registerPrivileges () {
     { scheme: 'bt', privileges: P2P_PRIVILEGES },
     { scheme: 'magnet', privileges: LOW_PRIVILEGES },
     { scheme: 'ipfs', privileges: P2P_PRIVILEGES },
-    { scheme: 'ipfsdb', privileges: P2P_PRIVILEGES },
+    { scheme: 'dbi', privileges: P2P_PRIVILEGES },
     { scheme: 'hyper', privileges: P2P_PRIVILEGES },
-    { scheme: 'hyperdb', privileges: P2P_PRIVILEGES },
+    { scheme: 'dbh', privileges: P2P_PRIVILEGES },
     { scheme: 'gemini', privileges: P2P_PRIVILEGES },
     { scheme: 'gopher', privileges: CS_PRIVILEGES },
     { scheme: 'hhttp', privileges: CS_PRIVILEGES },
@@ -104,9 +104,9 @@ export function setAsDefaultProtocolClient () {
   app.setAsDefaultProtocolClient('hybrid')
   app.setAsDefaultProtocolClient('bt')
   app.setAsDefaultProtocolClient('ipfs')
-  app.setAsDefaultProtocolClient('ipfsdb')
+  app.setAsDefaultProtocolClient('dbi')
   app.setAsDefaultProtocolClient('hyper')
-  app.setAsDefaultProtocolClient('hyperdb')
+  app.setAsDefaultProtocolClient('dbh')
   app.setAsDefaultProtocolClient('gemini')
   app.setAsDefaultProtocolClient('gopher')
   app.setAsDefaultProtocolClient('hhttp')
@@ -202,25 +202,25 @@ export async function setupProtocols (session) {
   console.log('registered hyper protocol')
   // hyper
 
-  // ipfsdb
+  // dbi
   const {default: makeIPFSDBFetch} = await import('./ipfsdb-protocol.js')
   const { handler: handlerIPFSDB, close: closeIPFSDB} = await makeIPFSDBFetch({...ipfs, err, helia}, session)
   onCloseHandlers.push(closeIPFSDB)
-  sessionProtocol.handle('ipfsdb', handlerIPFSDB)
-  globalProtocol.handle('ipfsdb', handlerIPFSDB)
+  sessionProtocol.handle('dbi', handlerIPFSDB)
+  globalProtocol.handle('dbi', handlerIPFSDB)
 
-  console.log('registered ipfsdb protocol')
-  // ipfsdb
+  console.log('registered dbi protocol')
+  // dbi
 
-  // hyperdb
+  // dbh
   const {default: makeHYPERDBFetch} = await import('./hyperdb-protocol.js')
   const { handler: handlerHYPERDB, close: closeHYPERDB} = await makeHYPERDBFetch({...hyper, err, sdk}, session)
   onCloseHandlers.push(closeHYPERDB)
-  sessionProtocol.handle('hyperdb', handlerHYPERDB)
-  globalProtocol.handle('hyperdb', handlerHYPERDB)
+  sessionProtocol.handle('dbh', handlerHYPERDB)
+  globalProtocol.handle('dbh', handlerHYPERDB)
 
-  console.log('registered hyperdb protocol')
-  // hyperdb
+  console.log('registered dbh protocol')
+  // dbh
 
   // gemini
   const {default: createGeminiHandler} = await import('./gemini-protocol.js')
