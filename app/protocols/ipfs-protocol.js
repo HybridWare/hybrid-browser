@@ -275,7 +275,7 @@ export default async function makeIPFSFetch (opts = {}) {
       
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
           const mainCid = CID.parse(useHost)
-          const useCid = await fileSystem.rm(mainCid, usePath.slice(1), { ...useOpt, cidVersion: 1, recursive: true })
+          const useCid = await fileSystem.rm(mainCid, usePath.slice(1), { ...useOpt, force: true, cidVersion: 1, recursive: true })
           // await app.files.rm(query, { ...useOpt, cidVersion: 1, recursive: true })
           const usedLink = `ipfs://${useHost}${usePath}`
           const usingLink = `ipfs://${useCid.toV1().toString()}/`
