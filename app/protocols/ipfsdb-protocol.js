@@ -44,7 +44,7 @@ export default async function makeIPFSDBFetch (opts = {}) {
         titleToUse = title
       }
       const useTitle = /^[A-HJ-NP-Za-km-z1-9]*$/.test(titleToUse) ? `/orbitdb/${titleToUse}` : titleToUse
-      const test = await orbitdb.open(useTitle, {type: 'keyvalue'})
+      const test = await orbitdb.open(useTitle, {type: 'documents'})
       const str = test.address.split('/').filter(Boolean)[1]
       const useStr = CID.parse(str, base58btc.decoder).toV1().toString()
       test.strForAddress = useStr
@@ -73,13 +73,14 @@ export default async function makeIPFSDBFetch (opts = {}) {
         const usePath = fullPath.slice(1)
         if(usePath){
           const useData = await odb.get(usePath)
-          return new Response(JSON.stringify(useData), {status: 200, headers: {...mainHeaders, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
+          return new Response(JSON.stringify(useData.value), {status: 200, headers: {...mainHeaders, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
         } else {
           const arr = []
           for await (const record of odb.iter(useOpt)){
             const {hash, payload} = record
             arr.push({hash, payload})
           }
+          // console.log(arr)
           return new Response(JSON.stringify(arr), {status: 200, headers: {...mainHeaders, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
         }
       } else if(method === 'POST'){
@@ -89,7 +90,7 @@ export default async function makeIPFSDBFetch (opts = {}) {
         const stamp = Date.now()
         getSaved._id = usePath || getSaved._id || stamp + '-' + crypto.createHash('sha256').update(crypto.randomUUID()).digest('hex')
         getSaved.stamp = getSaved.stamp || stamp
-        const hash = await odb.put(getSaved._id, getSaved)
+        const hash = await odb.put(getSaved)
         return new Response(JSON.stringify(getSaved._id), {status: 200, headers: {...mainHeaders, 'X-Hash': hash, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
       } else if(method === 'DELETE'){
         const odb = addrs.has(useHost) ? addrs.get(useHost) : await startTitle(useHost)
