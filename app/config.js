@@ -117,6 +117,13 @@ const Config = RC('hybrid', {
   web3: {
     chainList: getDefaultChainList(),
     multipleRpcMode: 'fallback'
+  },
+  ipfsdb: {
+    orbitid: 'test',
+    status: true
+  },
+  hyperdb: {
+    status: true
   }
 })
 

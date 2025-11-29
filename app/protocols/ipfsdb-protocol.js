@@ -6,7 +6,8 @@ export default async function makeIPFSDBFetch (opts = {}) {
   const {CID} = await import('multiformats')
   const {base58btc} = (await import('multiformats/basics')).bases
   const crypto = await import('crypto')
-  const orbitdb = await createOrbitDB({ ipfs: opts.helia })
+  const orbitdb = await createOrbitDB({ id: opts.orbitid || 'test', ipfs: opts.helia })
+  // const {text2arr} = await import('uint8-util')
     const { Readable } = await import('streamx')
     const mainHeaders = {
       'Access-Control-Allow-Origin': '*',

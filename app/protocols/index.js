@@ -52,7 +52,9 @@ const {
   vid,
   rns,
   err,
-  web3
+  web3,
+  ipfsdb,
+  hyperdb
 } = Config
 
 const onCloseHandlers = []
@@ -204,7 +206,7 @@ export async function setupProtocols (session) {
 
   // ipfsdb
   const {default: makeIPFSDBFetch} = await import('./ipfsdb-protocol.js')
-  const { handler: handlerIPFSDB, close: closeIPFSDB} = await makeIPFSDBFetch({...ipfs, err, helia}, session)
+  const { handler: handlerIPFSDB, close: closeIPFSDB} = await makeIPFSDBFetch({...ipfs, ...ipfsdb, err, helia}, session)
   onCloseHandlers.push(closeIPFSDB)
   sessionProtocol.handle('ipfsdb', handlerIPFSDB)
   globalProtocol.handle('ipfsdb', handlerIPFSDB)
@@ -214,7 +216,7 @@ export async function setupProtocols (session) {
 
   // hyperdb
   const {default: makeHYPERDBFetch} = await import('./hyperdb-protocol.js')
-  const { handler: handlerHYPERDB, close: closeHYPERDB} = await makeHYPERDBFetch({...hyper, err, sdk}, session)
+  const { handler: handlerHYPERDB, close: closeHYPERDB} = await makeHYPERDBFetch({...hyper, ...hyperdb, err, sdk}, session)
   onCloseHandlers.push(closeHYPERDB)
   sessionProtocol.handle('hyperdb', handlerHYPERDB)
   globalProtocol.handle('hyperdb', handlerHYPERDB)
