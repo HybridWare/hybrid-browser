@@ -31,12 +31,17 @@ export default async function makeHYPERDBFetch (opts = {}) {
 
     async function startTitle(title){
       const core = await sdk.get(title)
-      const db = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json' })
-      await db.ready()
-      db.strForAddress = db.key.toString('hex')
-      sdk.join(db.strForAddress, {})
-      addrs.set(db.strForAddress, db)
-      return db
+      const useStr = core.key.toString('hex')
+      if(addrs.has(useStr)){
+        return addrs.get(useStr)
+      } else {
+        const db = new Hyperbee(core, { keyEncoding: 'utf-8', valueEncoding: 'json' })
+        await db.ready()
+        db.strForAddress = useStr
+        sdk.join(db.strForAddress, {})
+        addrs.set(db.strForAddress, db)
+        return db
+      }
     }
 
     async function stopTitle(title, conn){
