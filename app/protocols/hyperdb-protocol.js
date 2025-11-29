@@ -78,7 +78,7 @@ export default async function makeHYPERDBFetch (opts = {}) {
           } else {
             const arr = []
             for await (const record of db.createReadStream(useOpt.range || {}, useOpt.options || {})){
-              arr.push(record.value)
+              arr.push(record)
             }
             return new Response(JSON.stringify(arr), {status: 200, headers: {...mainHeaders, 'X-Address': db.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
           }
