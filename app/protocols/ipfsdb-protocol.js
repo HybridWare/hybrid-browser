@@ -73,7 +73,7 @@ export default async function makeIPFSDBFetch (opts = {}) {
         const usePath = fullPath.slice(1)
         if(usePath){
           const useData = await odb.get(usePath)
-          return new Response(JSON.stringify(useData.value), {status: 200, headers: {...mainHeaders, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
+          return new Response(JSON.stringify(useData), {status: 200, headers: {...mainHeaders, 'X-Address': odb.strForAddress, 'Content-Type': 'application/json; charset=UTF-8'}})
         } else {
           const arr = []
           for await (const record of odb.iter(useOpt)){
