@@ -5,11 +5,9 @@ export default async function makeIPFSFetch (opts = {}) {
     const {default: mime} = await import('mime')
     const { Readable } = await import('streamx')
     const path = await import('path')
-    const fs = await import('fs/promises')
     const fse = await import('fs-extra')
     const DEFAULT_OPTS = {timeout: 30000}
     const finalOpts = { ...DEFAULT_OPTS, ...opts }
-    const block = finalOpts.block
     const hostType = '.'
     const repo = finalOpts.repo
     const ipfsTimeout = finalOpts.timeout
@@ -20,6 +18,8 @@ export default async function makeIPFSFetch (opts = {}) {
       'Access-Control-Allow-Methods': '*',
       'Access-Control-Request-Headers': '*'
     }
+    const db = finalOpts.level
+    const nameForBlock = 'block-ipfs-'
 
     // async function checkPath(data){
     //   try {
@@ -37,10 +37,6 @@ export default async function makeIPFSFetch (opts = {}) {
     const app = await (async () => { if (finalOpts.helia) { return finalOpts.helia; } else {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const { pubsubPeerDiscovery } = await import('@libp2p/pubsub-peer-discovery');const { uPnPNAT } = await import('@libp2p/upnp-nat');const { mdns } = await import('@libp2p/mdns');const {quic} = await import('@chainsafe/libp2p-quic');const {noise} = await import('@chainsafe/libp2p-noise');const { autoNAT } = await import('@libp2p/autonat');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(repo), datastore: new FsDatastore(repo), libp2p: {transports: [quic()], addresses: {listen: ['/ip4/0.0.0.0/udp/0/quic-v1']}, connectionEncryption: [noise()], peerDiscovery: [pubsubPeerDiscovery(), mdns()], services: {upnpNAT: uPnPNAT(), autoNAT: autoNAT(), dht: kadDHT(), pubsub: gossipsub(), identify: identify()}}});}})()
     // console.log(Object.keys(app), app)
     const fileSystem = await (async () => {const {unixfs} = await import('@helia/unixfs');return unixfs(app);})()
-    if(!await fse.pathExists(path.join(repo, 'block.txt'))){
-      await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify([]))
-    }
-    const blockList = block ? JSON.parse((await fs.readFile(path.join(repo, 'block.txt'))).toString('utf-8')) : null
   
     function formatReq(hostname, pathname){
       pathname = decodeURIComponent(pathname)
@@ -127,7 +123,7 @@ export default async function makeIPFSFetch (opts = {}) {
       const method = session.method
       const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : 0 : ipfsTimeout
       const { mimeType: type, ext, query, fullPath, isCID, useHost, usePath } = formatReq(decodeURIComponent(mainURL.hostname), decodeURIComponent(mainURL.pathname))
-      const isItBlock = block && !query && blockList.includes(useHost)
+      const isItBlock = !query && await db.get(`${nameForBlock}${useHost}`)
 
       if(method === 'HEAD'){
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
@@ -135,7 +131,7 @@ export default async function makeIPFSFetch (opts = {}) {
       
           if(reqHeaders.has('x-block') || searchParams.has('x-block')){
             if(JSON.parse(reqHeaders.get('x-block') || searchParams.get('x-block'))){
-              if(blockList.includes(useHost)){
+              if(isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
                 const mainCid = CID.parse(useHost)
@@ -145,18 +141,14 @@ export default async function makeIPFSFetch (opts = {}) {
                 const useCid = await fileSystem.rm(mainCid, usePath, { ...useOpt, cidVersion: 1, recursive: true })
                 // await app.files.rm(query, { ...useOpt, cidVersion: 1, recursive: true })
                 const useLink = `ipfs://${useCid}/`
-
-                blockList.push(useHost)
-                await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify(blockList))
-
+                await db.put(`${nameForBlock}${useHost}`, String(Date.now()))
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now blocking', 'X-Link': useLink}})
               }
             } else {
-              if(!blockList.includes(useHost)){
+              if(!isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already unblocked'}})
               } else {
-                blockList.splice(blockList.indexOf(useHost), 1)
-                await fs.writeFile(path.join(repo, 'block.txt'), JSON.stringify(blockList))
+                await db.del(`${nameForBlock}${useHost}`)
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
@@ -260,6 +252,9 @@ export default async function makeIPFSFetch (opts = {}) {
             }
           }
       } else if(method === 'POST'){
+        if(isItBlock){
+          return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+        }
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
       
@@ -270,6 +265,9 @@ export default async function makeIPFSFetch (opts = {}) {
             const useLink = `ipfs://${getHost}${usePath}`
             return new Response(mainReq ? `<html><head><title>${useHost}</title></head><body><div>${Array.isArray(getSaved) ? JSON.stringify(getSaved) : getSaved}</div></body></html>` : JSON.stringify(getSaved), {status: 200, headers: {...mainHeaders, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
       } else if(method === 'DELETE'){
+        if(isItBlock){
+          return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+        }
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
       

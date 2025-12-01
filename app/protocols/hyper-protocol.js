@@ -19,6 +19,8 @@ export default async function makeHyperFetch (opts = {}) {
       'Access-Control-Allow-Methods': '*',
       'Access-Control-Request-Headers': '*'
     }
+    const db = finalOpts.level
+    const nameForBlock = 'block-hyper-'
 
     // async function checkPath(data){
     //   try {
@@ -110,7 +112,7 @@ export default async function makeHyperFetch (opts = {}) {
       const method = session.method
       const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : 0 : hyperTimeout
       const main = formatReq(decodeURIComponent(mainURL.hostname), decodeURIComponent(mainURL.pathname))
-      const isItBlock = block && !main.query && blockList.includes(main.useHost)
+      const isItBlock = !main.query && await db.get(`${nameForBlock}${main.useHost}`)
 
       if(method === 'HEAD'){
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
@@ -118,7 +120,7 @@ export default async function makeHyperFetch (opts = {}) {
 
           if(reqHeaders.has('x-block') || searchParams.has('x-block')){
             if(JSON.parse(reqHeaders.get('x-block') || searchParams.get('x-block'))){
-              if(blockList.includes(main.useHost)){
+              if(isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
                 const mainKid = await app.getDrive(main.useHost)
@@ -126,19 +128,15 @@ export default async function makeHyperFetch (opts = {}) {
                   await mainKid.purge()
                   await mainKid.close()
                 }
-
-                blockList.push(main.useHost)
-                await fs.writeFile(path.join(storage, 'block.txt'), JSON.stringify(blockList))
+                await db.put(`${nameForBlock}${main.useHost}`, String(Date.now()))
                 const useLink = `hyper://${main.useHost}/`
-
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now blocking', 'X-Link': useLink}})
               }
             } else {
-              if(!blockList.includes(main.useHost)){
+              if(!isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already unblocked'}})
               } else {
-                blockList.splice(blockList.indexOf(main.useHost), 1)
-                await fs.writeFile(path.join(storage, 'block.txt'), JSON.stringify(blockList))
+                await db.del(`${nameForBlock}${main.useHost}`)
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
@@ -200,6 +198,9 @@ export default async function makeHyperFetch (opts = {}) {
             }
           }
       } else if(method === 'POST'){
+        if(isItBlock){
+          return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+        }
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
           
@@ -212,6 +213,9 @@ export default async function makeHyperFetch (opts = {}) {
           const useLink = `hyper://${path.join(useName, main.usePath).replace(/\\/g, '/')}`
           return new Response(mainReq ? `<html><head><title>Fetch</title></head><body><div>${Array.isArray(getSaved) ? JSON.stringify(getSaved) : getSaved}</div></body></html>` : JSON.stringify(getSaved), {status: 200, headers: {...mainHeaders, 'Content-Type': mainRes, 'X-Link': useLink, 'Link': `<${useLink}>; rel="canonical"`}})
       } else if(method === 'DELETE'){
+        if(isItBlock){
+          return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+        }
           const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
           const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
           

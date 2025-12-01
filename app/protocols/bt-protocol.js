@@ -13,7 +13,6 @@ export default async function makeBTFetch (opts = {}) {
     const hostTypeKey = '_'
     const hostTypeHash = '.'
     const btTimeout = finalOpts.timeout
-    const block = finalOpts.block
     const dir = finalOpts.dir
     const mainHeaders = {
       'Access-Control-Allow-Origin': '*',
@@ -22,6 +21,8 @@ export default async function makeBTFetch (opts = {}) {
       'Access-Control-Allow-Methods': '*',
       'Access-Control-Request-Headers': '*'
     }
+    const db = finalOpts.level
+    const nameForBlock = 'block-bt-'
 
     // async function checkPath(data){
     //   try {
@@ -41,10 +42,6 @@ export default async function makeBTFetch (opts = {}) {
       console.error(err)
     }
     app.on('err', handleErr)
-    if(!await fse.pathExists(path.join(dir, 'block.txt'))){
-      await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify([]))
-    }
-    const blockList = block ? JSON.parse((await fs.readFile(path.join(dir, 'block.txt'))).toString('utf-8')) : null
   
     function handleFormData(formdata) {
       const arr = []
@@ -131,7 +128,7 @@ export default async function makeBTFetch (opts = {}) {
         const method = session.method
         const mainTimeout = reqHeaders.has('x-timer') || searchParams.has('x-timer') ? reqHeaders.get('x-timer') !== '0' || searchParams.get('x-timer') !== '0' ? Number(reqHeaders.get('x-timer') || searchParams.get('x-timer')) * 1000 : 0 : btTimeout
         const mid = formatReq(decodeURIComponent(mainURL.hostname), decodeURIComponent(mainURL.pathname), reqHeaders.get('x-authentication'))
-        const isItBlock = block && !mid.mainQuery && blockList.includes(mid.id)
+        const isItBlock = !mid.mainQuery && await db.get(`${nameForBlock}${mid.id}`)
 
         if(method === 'HEAD'){
           const useOpt = reqHeaders.has('x-opt') || searchParams.has('x-opt') ? JSON.parse(reqHeaders.get('x-opt') || decodeURIComponent(searchParams.get('x-opt'))) : {}
@@ -139,24 +136,20 @@ export default async function makeBTFetch (opts = {}) {
           
           if(reqHeaders.has('x-block') || searchParams.has('x-block')){
             if(JSON.parse(reqHeaders.get('x-block') || searchParams.get('x-block'))){
-              if(blockList.includes(mid.id)){
+              if(isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already blocked'}})
               } else {
                 const torrentData = await app.shredTorrent(mid.id, '/', {})
                 const useIden = torrentData.address || torrentData.infohash || torrentData.msg || torrentData.id
                 const useLink = `bt://${useIden}/`
-
-                blockList.push(mid.id)
-                await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify(blockList))
-
+                await db.put(`${nameForBlock}${mid.id}`, String(Date.now()))
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now blocking', 'X-Link': useLink}})
               }
             } else {
-              if(!blockList.includes(mid.id)){
+              if(!isItBlock){
                 return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'already unblocked'}})
               } else {
-                blockList.splice(blockList.indexOf(mid.id), 1)
-                await fs.writeFile(path.join(dir, 'block.txt'), JSON.stringify(blockList))
+                await db.del(`${nameForBlock}${mid.id}`)
                 return new Response(null, { status: 200, headers: {...mainHeaders, 'X-Status': 'now unblocking'}})
               }
             }
@@ -236,7 +229,9 @@ export default async function makeBTFetch (opts = {}) {
               return new Response(mainReq ? `<html><head><title>${mid.mainLink}</title></head><body><div><p>Error: could not find the data</p></div></body></html>` : JSON.stringify({error: 'could not find the data'}), { status: 400, headers: { ...mainHeaders, 'Content-Type': mainRes, 'X-Error': 'could not find the data' } })
             }
         } else if(method === 'POST'){
-          // use the new publishtorrent function which uses the new torrentz echo functions
+          if(isItBlock){
+            return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+          }
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
         
@@ -260,6 +255,9 @@ export default async function makeBTFetch (opts = {}) {
             useHeaders['Link'] = `<${useHeaders['X-Link']}>; rel="canonical"`
             return new Response(mainReq ? `<html><head><title>${useIden}</title></head><body><div>${Array.isArray(torrentData.saved) ? JSON.stringify(torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')})) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')}</div></body></html>` : JSON.stringify(Array.isArray(torrentData.saved) ? torrentData.saved.map((data) => {return 'bt://' + path.join(useIden, data).replace(/\\/g, '/')}) : 'bt://' + path.join(useIden, torrentData.saved).replace(/\\/g, '/')), { status: 200, headers: { ...mainHeaders, 'Content-Length': String(torrentData.length), 'Content-Type': mainRes, ...useHeaders } })
         } else if(method === 'DELETE'){
+          if(isItBlock){
+            return new Response(null, { status: 400, headers: {...mainHeaders, 'X-Error': 'block'}})
+          }
             const mainReq = !reqHeaders.has('accept') || !reqHeaders.get('accept').includes('application/json')
             const mainRes = mainReq ? 'text/html; charset=utf-8' : 'application/json; charset=utf-8'
         

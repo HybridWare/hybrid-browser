@@ -1,6 +1,7 @@
 import { app, protocol as globalProtocol } from 'electron'
 import Config from '../config.js'
 import fs from 'fs-extra'
+import { Level } from 'level'
 
 const P2P_PRIVILEGES = {
   standard: true,
@@ -54,7 +55,8 @@ const {
   err,
   web3,
   ipfsdb,
-  hyperdb
+  hyperdb,
+  db
 } = Config
 
 const onCloseHandlers = []
@@ -135,7 +137,8 @@ export async function setupProtocols (session) {
 
   console.log('registered hybrid protocol')
 
-  const torrentz = await (async () => {const {default: Torrentz} = await import('torrentz');return new Torrentz(bt);})()
+  const level = new Level(db, { valueEncoding: 'json' })
+  const torrentz = await (async () => {const {default: Torrentz} = await import('torrentz');return new Torrentz({...bt, level});})()
   const helia = await (async () => {const {createHelia} = await import('helia');const {FsDatastore} = await import('datastore-fs');const {FsBlockstore} = await import('blockstore-fs');const { pubsubPeerDiscovery } = await import('@libp2p/pubsub-peer-discovery');const { uPnPNAT } = await import('@libp2p/upnp-nat');const { mdns } = await import('@libp2p/mdns');const {noise} = await import('@chainsafe/libp2p-noise');const { autoNAT } = await import('@libp2p/autonat');const {identify} = await import('@libp2p/identify');const {kadDHT} = await import('@libp2p/kad-dht');const {gossipsub} = await import('@chainsafe/libp2p-gossipsub');return await createHelia({blockstore: new FsBlockstore(ipfs.repo), datastore: new FsDatastore(ipfs.repo), libp2p: {connectionEncryption: [noise()], peerDiscovery: [pubsubPeerDiscovery(), mdns()], services: {upnpNAT: uPnPNAT(), autoNAT: autoNAT(), dht: kadDHT(), pubsub: gossipsub({allowPublishToZeroTopicPeers: true}), identify: identify()}}});})()
   const sdk = await (async () => {const SDK = await import('hyper-sdk');const sdk = await SDK.create(hyper);return sdk;})()
 
@@ -171,7 +174,7 @@ export async function setupProtocols (session) {
 
   // bt
   const {default: createBTHandler} = await import('./bt-protocol.js')
-  const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, err, torrentz}, session)
+  const { handler: btHandler, close: closeBT } = await createBTHandler({...bt, err, torrentz, level}, session)
   onCloseHandlers.push(closeBT)
   sessionProtocol.handle('bt', btHandler)
   globalProtocol.handle('bt', btHandler)
@@ -186,7 +189,7 @@ export async function setupProtocols (session) {
 
   // ipfs
   const {default: createIPFSHandler} = await import('./ipfs-protocol.js')
-  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, err, helia}, session)
+  const { handler: ipfsHandler, close: closeIPFS } = await createIPFSHandler({...ipfs, err, helia, level}, session)
   onCloseHandlers.push(closeIPFS)
   sessionProtocol.handle('ipfs', ipfsHandler)
   globalProtocol.handle('ipfs', ipfsHandler)
@@ -196,7 +199,7 @@ export async function setupProtocols (session) {
 
   // hyper
   const {default: createHyperHandler} = await import('./hyper-protocol.js')
-  const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, err, sdk}, session)
+  const { handler: hyperHandler, close: closeHyper } = await createHyperHandler({...hyper, err, sdk, level}, session)
   onCloseHandlers.push(closeHyper)
   sessionProtocol.handle('hyper', hyperHandler)
   globalProtocol.handle('hyper', hyperHandler)

@@ -1,6 +1,5 @@
 import { app, ipcMain } from 'electron'
 import RC from 'rc'
-
 import os from 'node:os'
 import path from 'node:path'
 import { readFile, writeFile } from 'node:fs/promises'
@@ -15,6 +14,7 @@ const DEFAULT_IPFS_DIR = path.join(USER_DATA, 'ipfs')
 const DEFAULT_HYPER_DIR = path.join(USER_DATA, 'hyper')
 // const DEFAULT_SSB_DIR = path.join(USER_DATA, 'ssb')
 const DEFAULT_BT_DIR = path.join(USER_DATA, 'bt')
+const DEFAULT_LEVEL_DIR = path.join(USER_DATA, 'level')
 
 const DEFAULT_PAGE = 'hybrid://welcome'
 
@@ -67,6 +67,8 @@ const Config = RC('hybrid', {
   autoHideMenuBar: false,
 
   err: true,
+
+  db: DEFAULT_LEVEL_DIR,
 
   bt: {
     dir: DEFAULT_BT_DIR,
